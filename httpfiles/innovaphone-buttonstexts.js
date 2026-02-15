@@ -26,7 +26,14 @@ innovaphone.buttonsTexts = {
         "searchitem": "Search...",
         "connectedDevices": "Connected Devices",
         "hotkey": "Hotkey",
-        "syslog": "Logging App"
+        "syslog": "Logging App",
+        "dt_search_placeholder": "Search...",
+        "dt_search_title": "Search within table",
+        "dt_per_page": "entries per page",
+        "dt_page_title": "Page {page}",
+        "dt_no_rows": "No entries found",
+        "dt_no_results": "No results match your search query",
+        "dt_info": "Showing {start} to {end} of {rows} entries"
     },
     de: {
         "add_Device": "Gerät hinzufügen",
@@ -54,6 +61,13 @@ innovaphone.buttonsTexts = {
         "searchitem": "Suche...",
         "connectedDevices": "Verbundene Geräte",
         "hotkey": "Hotkey",
-        "syslog": "Logging App"
+        "syslog": "Logging App",
+        "dt_search_placeholder": "Suchen...",
+        "dt_search_title": "In Tabelle suchen",
+        "dt_per_page": "Einträge pro Seite",
+        "dt_page_title": "Seite {page}",
+        "dt_no_rows": "Keine Einträge gefunden",
+        "dt_no_results": "Keine passenden Ergebnisse",
+        "dt_info": "{start} bis {end} von {rows} Einträgen"
     }
 }

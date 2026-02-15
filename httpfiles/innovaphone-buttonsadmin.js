@@ -13,12 +13,18 @@ innovaphone.buttonsAdmin = innovaphone.buttonsAdmin || function (start, args) {
         dark: {
             "--bg": "#191919",
             "--button": "#303030",
+            "--modal": "#3f3f3f",
             "--text-standard": "#f2f5f6",
+            "--hover-text": "#f2f5f6",
+
         },
         light: {
             "--bg": "white",
             "--button": "#e0e0e0",
+            "--modal": "#d0d0d0",
             "--text-standard": "#4a4a49",
+            "--hover-text": "#f2f5f6",
+
         }
     };
 
@@ -33,20 +39,63 @@ innovaphone.buttonsAdmin = innovaphone.buttonsAdmin || function (start, args) {
     app.checkBuild = true;
     app.onconnected = app_connected;
     app.onmessage = app_message;
+    var dt = null;
+    var pendingActionRows = [];
+    var actionsDone = false;
+    var actionsRenderTimer = null;
+    var actionsById = {};
+    var ICONS = "icons.svg#";
+    var onlineIds = {};
+    var waitingQueueSelect = null;
+    var activeQueueList = null;
+    var rccWaitingQueueSelect = null;
+
+    var presenceselect = null;
+    var presenceactions = null;
+    var buttons = null;
+    var choosenaction = null;
+    var choosendevice = null;
+    var choosentype = null;
+    var optionopen = false;
+    var presenceselect = null;
 
     var main = new innovaphone.ui1.Div("align: center", null, "bodydiv");
-    var addButtonDiv = new innovaphone.ui1.Div("display: flex;", null, null);
+    var addButtonDiv = new innovaphone.ui1.Div("display:flex; justify-content:center; align-items:center; gap:10px; margin:auto; width:75%;", null, "btn_menu");
 
     that.add(main);
+    var appView = main.add(new innovaphone.ui1.Div(
+        "display:flex; flex-direction:column; height:100%;",
+        null,
+        "app-view"
+    ));
+    appView.container.classList.remove("is-ready");
+
     var overlay = new innovaphone.ui1.Div(null, null, "overlay");
+    var modalOverlay = new innovaphone.ui1.Div(null, null, "overlay");
+    modalOverlay.container.style.display = "none";
+
+    function openModal(div) {
+        modalOverlay.container.style.display = "block";
+        div.container.style.display = "flex";
+    }
+
+    function closeAllModals() {
+        AddDeviceDiv && (AddDeviceDiv.container.style.display = "none");
+        QueueManageDiv && (QueueManageDiv.container.style.display = "none");
+        optionsdeviceDiv && (optionsdeviceDiv.container.style.display = "none");
+        modalOverlay.container.style.display = "none";
+    }
+
+    modalOverlay.container.onclick = closeAllModals;
+    main.add(modalOverlay);
 
     const addDevices_Button = new innovaphone.ui1.Div("margin: 10px", texts.text("add_Device"), "button");
     addDevices_Button.container.addEventListener("click", function () {
-        AddDeviceDiv.container.style.display = "block";
+        openModal(AddDeviceDiv);
     });
     const addQueue_Button = new innovaphone.ui1.Div("margin: 10px", texts.text("add_Queue"), "button");
     addQueue_Button.container.addEventListener("click", function () {
-        QueueManageDiv.container.style.display = "block";
+        openModal(QueueManageDiv);
     });
     const showDevices_Button = new innovaphone.ui1.Div("margin: 10px", texts.text("connectedDevices"), "button");
     showDevices_Button.container.addEventListener("click", function () {
@@ -57,11 +106,29 @@ innovaphone.buttonsAdmin = innovaphone.buttonsAdmin || function (start, args) {
     addButtonDiv.add(addDevices_Button);
     addButtonDiv.add(addQueue_Button);
     addButtonDiv.add(showDevices_Button);
-    main.add(addButtonDiv);
+    appView.add(addButtonDiv);
+
+    const searchOptionsDiv = new innovaphone.ui1.Div("display:flex; justify-content:flex-end; width:75%; margin:auto; padding:6px 12px; box-sizing:border-box;", null, null);
+    const searchInputDiv = searchOptionsDiv.add(new innovaphone.ui1.Div("min-width:170px; max-width:420px; width:28%;", null, null));
+    const searchInput = searchInputDiv.add(new innovaphone.ui1.Input(null, null, texts.text("searchitem"), null, "text", "inputfield"));
+    searchInput.setAttribute("id", "search-input");
 
     // Add Device
     const AddDeviceDiv = new innovaphone.ui1.Div(null, texts.text("addnewDevice"), "optionsDiv");
     AddDeviceDiv.container.style.display = "none";
+    AddDeviceDiv.container.style.position = "fixed";
+    AddDeviceDiv.container.style.left = "50%";
+    AddDeviceDiv.container.style.top = "20%";
+    AddDeviceDiv.container.style.transform = "translateX(-50%)";
+    AddDeviceDiv.container.style.zIndex = "1000";
+    AddDeviceDiv.container.style.minWidth = "320px";
+    AddDeviceDiv.container.style.maxWidth = "520px";
+    AddDeviceDiv.container.style.boxShadow = "0 10px 40px rgba(0,0,0,0.35)";
+    AddDeviceDiv.container.style.padding = "14px";
+    AddDeviceDiv.container.style.backgroundColor = "var(--modal)";
+    AddDeviceDiv.container.style.borderRadius = "12px";
+    AddDeviceDiv.container.style.flexDirection = "column";
+    AddDeviceDiv.container.style.gap = "12px";
 
     const AddDeviceLabel = new innovaphone.ui1.Div(null, null, null);
     const adddevice = new innovaphone.ui1.Node("span", null, null, null);
@@ -132,9 +199,7 @@ innovaphone.buttonsAdmin = innovaphone.buttonsAdmin || function (start, args) {
     };
 
     const addDevice_closebutton = new innovaphone.ui1.Div(null, texts.text("close"), "button");
-    addDevice_closebutton.container.onclick = function () {
-        AddDeviceDiv.container.style.display = "none";
-    };
+    addDevice_closebutton.container.onclick = closeAllModals;
 
     AddDeviceDiv.add(AddDeviceLabel);
     AddDeviceDiv.add(devicetypesselect);
@@ -146,44 +211,58 @@ innovaphone.buttonsAdmin = innovaphone.buttonsAdmin || function (start, args) {
 
     // Queue Management
     const QueueManageDiv = new innovaphone.ui1.Div("text-align: center;", texts.text("add_Queue"), null);
+    QueueManageDiv.container.style.position = "fixed";
+    QueueManageDiv.container.style.left = "50%";
+    QueueManageDiv.container.style.top = "20%";
+    QueueManageDiv.container.style.transform = "translateX(-50%)";
+    QueueManageDiv.container.style.zIndex = "1000";
+    QueueManageDiv.container.style.minWidth = "320px";
+    QueueManageDiv.container.style.maxWidth = "780px";
+    QueueManageDiv.container.style.boxShadow = "0 10px 40px rgba(0,0,0,0.35)";
+    QueueManageDiv.container.style.padding = "14px";
+    QueueManageDiv.container.style.backgroundColor = "var(--modal)";
+    QueueManageDiv.container.style.borderRadius = "12px";
     QueueManageDiv.container.style.display = "none";
+    QueueManageDiv.container.style.flexDirection = "column";
+    QueueManageDiv.container.style.gap = "12px";
 
-    const QueueList = QueueManageDiv.add(new innovaphone.ui1.Div());
+    activeQueueList = QueueManageDiv.add(new innovaphone.ui1.Div());
     //Add Queue
     const AddQueueDiv = QueueManageDiv.add(new innovaphone.ui1.Div(null, texts.text("addnewQueue"), "optionsDiv"));
-
     const AddQueueLabel = new innovaphone.ui1.Div(null, null, null);
     const addqueue = new innovaphone.ui1.Node("span", null, null, null);
     AddQueueLabel.add(addqueue)
-
-    const addQueue_Name_Input = new innovaphone.ui1.Input(null, null, "WaitingQueue Longname", null, "text", "inputfield");
-    const addQueue_Pbx_Input = new innovaphone.ui1.Input(null, null, "PBX Name", null, "text", "inputfield");
+    waitingQueueSelect = new innovaphone.ui1.DropDown(null, null, null, null, "waiting-select");
+    waitingQueueSelect.container.style.width = "100%";
+    AddQueueDiv.add(waitingQueueSelect);
+    //const addQueue_Name_Input = new innovaphone.ui1.Input(null, null, "WaitingQueue Longname", null, "text", "inputfield");
+    //const addQueue_Pbx_Input = new innovaphone.ui1.Input(null, null, "PBX Name", null, "text", "inputfield");
 
     const addQueue_submitButton = new innovaphone.ui1.Div(null, texts.text("submit"), "button");
     addQueue_submitButton.container.onclick = function () {
-        const queuename = addQueue_Name_Input.getValue();
-        const queuepbx = addQueue_Pbx_Input.getValue();
+        const queuename = waitingQueueSelect.container.value;
+        //const queuename = addQueue_Name_Input.getValue();
+        //const queuepbx = addQueue_Pbx_Input.getValue();
+        if (!queuename) return;
         app.send({
             mt: "SqlInsert",
             src: "add-queue",
             statement: "add-queue",
             args: {
                 queue: queuename,
-                pbx: queuepbx
             }
         });
     };
 
     const addQueue_closebutton = new innovaphone.ui1.Div(null, texts.text("close"), "button");
-    addQueue_closebutton.container.onclick = function () {
-        QueueManageDiv.container.style.display = "none";
-    };
+    addQueue_closebutton.container.onclick = closeAllModals;
 
     AddQueueDiv.add(AddQueueLabel);
-    AddQueueDiv.add(addQueue_Name_Input);
-    AddQueueDiv.add(addQueue_Pbx_Input);
+    //AddQueueDiv.add(addQueue_Name_Input);
+    //AddQueueDiv.add(addQueue_Pbx_Input);
     AddQueueDiv.add(addQueue_submitButton);
     AddQueueDiv.add(addQueue_closebutton);
+
 
     main.add(QueueManageDiv);
 
@@ -206,15 +285,31 @@ innovaphone.buttonsAdmin = innovaphone.buttonsAdmin || function (start, args) {
 
     // Options
 
-    const optionsdeviceDiv = new innovaphone.ui1.Div(null, "Options - ID: ", "optionsDiv");
+    const optionsdeviceDiv = new innovaphone.ui1.Div(null, null, "optionsDiv");
+    const optionsHeader = optionsdeviceDiv.add(new innovaphone.ui1.Div("font-weight:600;", null, null));
+    optionsdeviceDiv.container.style.position = "fixed";
+    optionsdeviceDiv.container.style.left = "50%";
+    optionsdeviceDiv.container.style.top = "20%";
+    optionsdeviceDiv.container.style.transform = "translateX(-50%)";
+    optionsdeviceDiv.container.style.zIndex = "1000";
+    optionsdeviceDiv.container.style.minWidth = "420px";
+    optionsdeviceDiv.container.style.maxWidth = "720px";
+    optionsdeviceDiv.container.style.boxShadow = "0 10px 40px rgba(0,0,0,0.35)";
+    optionsdeviceDiv.container.style.padding = "14px";
+    optionsdeviceDiv.container.style.backgroundColor = "var(--modal)";
+    optionsdeviceDiv.container.style.borderRadius = "12px";
     optionsdeviceDiv.container.style.display = "none";
+    optionsdeviceDiv.container.style.flexDirection = "column";
+    optionsdeviceDiv.container.style.gap = "12px";
+
+
 
     const optionsdeviceLabel = new innovaphone.ui1.Div(null, null, null);
     const optionsdevice = new innovaphone.ui1.Node("span", null, null, null);
     optionsdeviceLabel.add(optionsdevice)
 
     const buttonsselect = new innovaphone.ui1.Node("select", null, null, null);
-    const buttons = [
+    buttons = [
         { id: 1, label: "1-Click" },
         { id: 2, label: "2-Click" },
         { id: 3, label: "3-Click" },
@@ -263,7 +358,7 @@ innovaphone.buttonsAdmin = innovaphone.buttonsAdmin || function (start, args) {
             destinationText.container.style.display = "none";
             presenceselect.container.style.display = "none";
             workingselect.container.style.display = "block";
-            queueeselect.container.style.display = "none";
+            rccWaitingQueueSelect.container.style.display = "none";
             destinationInput.container.style.display = "block";
             destinationText.setValue("-");
         }
@@ -272,7 +367,7 @@ innovaphone.buttonsAdmin = innovaphone.buttonsAdmin || function (start, args) {
             destinationText.container.style.display = "none";
             workingselect.container.style.display = "none";
             presenceselect.container.style.display = "block";
-            queueeselect.container.style.display = "none";
+            rccWaitingQueueSelect.container.style.display = "none";
             destinationInput.container.style.display = "block";
             destinationText.setValue("-");
         }
@@ -281,8 +376,7 @@ innovaphone.buttonsAdmin = innovaphone.buttonsAdmin || function (start, args) {
             destinationText.container.style.display = "none";
             workingselect.container.style.display = "none";
             presenceselect.container.style.display = "none";
-            queueeselect.container.style.display = "block";
-            destinationInput.container.style.display = "block";
+            rccWaitingQueueSelect.container.style.display = "block";
             destinationText.setValue("-");
         }
         else {
@@ -290,7 +384,7 @@ innovaphone.buttonsAdmin = innovaphone.buttonsAdmin || function (start, args) {
             destinationText.container.style.display = "block";
             workingselect.container.style.display = "none";
             presenceselect.container.style.display = "none";
-            queueeselect.container.style.display = "none";
+            rccWaitingQueueSelect.container.style.display = "none";
         }
     }
     const loggingFilterInput = new innovaphone.ui1.Input(null, null, "Message Filter", null, "text", "inputfield");
@@ -305,8 +399,8 @@ innovaphone.buttonsAdmin = innovaphone.buttonsAdmin || function (start, args) {
     });
     workingselect.container.style.display = "none";
 
-    const presenceselect = new innovaphone.ui1.Node("select", null, null, null);
-    const presenceactions = [
+    presenceselect = new innovaphone.ui1.Node("select", null, null, null);
+    presenceactions = [
         { id: 1, label: texts.text("online") },
         { id: 2, label: texts.text("away") },
         { id: 3, label: texts.text("busy") },
@@ -319,8 +413,8 @@ innovaphone.buttonsAdmin = innovaphone.buttonsAdmin || function (start, args) {
     });
     presenceselect.container.style.display = "none";
 
-    const queueeselect = new innovaphone.ui1.Node("select", null, null, null);
-    queueeselect.container.style.display = "none";
+    rccWaitingQueueSelect = new innovaphone.ui1.DropDown(null, null, null, null, "rcc-select");
+    rccWaitingQueueSelect.container.style.display = "none";
 
     const submitbutton = new innovaphone.ui1.Div(null, texts.text("submit"), "button");
 
@@ -334,7 +428,7 @@ innovaphone.buttonsAdmin = innovaphone.buttonsAdmin || function (start, args) {
                 app.send({ mt: "SqlExec", src: "set-action", statement: "set-action", args: { actionid: "" + choosenaction + "", button: "" + buttonsselect.container.value + "", option: "" + actionsselect.container.value + "", sipuser: "" + destinationInput.getValue() + "", text: "" + presenceselect.container.value + "" } });
             }
             else if (actionsselect.container.value === "call") {
-                app.send({ mt: "SqlExec", src: "set-action", statement: "set-action", args: { actionid: "" + choosenaction + "", button: "" + buttonsselect.container.value + "", option: "" + actionsselect.container.value + "", sipuser: "" + destinationInput.getValue() + "", text: "" + queueeselect.container.value + "" } });
+                app.send({ mt: "SqlExec", src: "set-action", statement: "set-action", args: { actionid: "" + choosenaction + "", button: "" + buttonsselect.container.value + "", option: "" + actionsselect.container.value + "", sipuser: "" + destinationInput.getValue() + "", text: "" + rccWaitingQueueSelect.container.value + "" } });
             }
             else {
                 app.send({ mt: "SqlExec", src: "set-action", statement: "set-action", args: { actionid: "" + choosenaction + "", button: "" + buttonsselect.container.value + "", option: "" + actionsselect.container.value + "", sipuser: "" + destinationInput.getValue() + "", text: "" + destinationText.getValue() + "" } });
@@ -349,7 +443,7 @@ innovaphone.buttonsAdmin = innovaphone.buttonsAdmin || function (start, args) {
                 app.send({ mt: "SqlExec", src: "set-action", statement: "set-action", args: { actionid: "" + choosenaction + "", button: "" + windowselect.container.value + "", option: "" + actionsselect.container.value + "", sipuser: "" + destinationInput.getValue() + "", text: "" + presenceselect.container.value + "" } });
             }
             else if (actionsselect.container.value === "call") {
-                app.send({ mt: "SqlExec", src: "set-action", statement: "set-action", args: { actionid: "" + choosenaction + "", button: "" + windowselect.container.value + "", option: "" + actionsselect.container.value + "", sipuser: "" + destinationInput.getValue() + "", text: "" + queueeselect.container.value + "" } });
+                app.send({ mt: "SqlExec", src: "set-action", statement: "set-action", args: { actionid: "" + choosenaction + "", button: "" + windowselect.container.value + "", option: "" + actionsselect.container.value + "", sipuser: "" + destinationInput.getValue() + "", text: "" + rccWaitingQueueSelect.container.value + "" } });
             }
             else {
                 app.send({ mt: "SqlExec", src: "set-action", statement: "set-action", args: { actionid: "" + choosenaction + "", button: "" + windowselect.container.value + "", option: "" + actionsselect.container.value + "", sipuser: "" + destinationInput.getValue() + "", text: "" + destinationText.getValue() + "" } });
@@ -364,7 +458,7 @@ innovaphone.buttonsAdmin = innovaphone.buttonsAdmin || function (start, args) {
                 app.send({ mt: "SqlExec", src: "set-action", statement: "set-action", args: { actionid: "" + choosenaction + "", button: "" + motionselect.container.value + "", option: "" + actionsselect.container.value + "", sipuser: "" + destinationInput.getValue() + "", text: "" + presenceselect.container.value + "" } });
             }
             else if (actionsselect.container.value === "call") {
-                app.send({ mt: "SqlExec", src: "set-action", statement: "set-action", args: { actionid: "" + choosenaction + "", button: "" + motionselect.container.value + "", option: "" + actionsselect.container.value + "", sipuser: "" + destinationInput.getValue() + "", text: "" + queueeselect.container.value + "" } });
+                app.send({ mt: "SqlExec", src: "set-action", statement: "set-action", args: { actionid: "" + choosenaction + "", button: "" + motionselect.container.value + "", option: "" + actionsselect.container.value + "", sipuser: "" + destinationInput.getValue() + "", text: "" + rccWaitingQueueSelect.container.value + "" } });
             }
             else {
                 app.send({ mt: "SqlExec", src: "set-action", statement: "set-action", args: { actionid: "" + choosenaction + "", button: "" + motionselect.container.value + "", option: "" + actionsselect.container.value + "", sipuser: "" + destinationInput.getValue() + "", text: "" + destinationText.getValue() + "" } });
@@ -378,7 +472,7 @@ innovaphone.buttonsAdmin = innovaphone.buttonsAdmin || function (start, args) {
                 app.send({ mt: "SqlExec", src: "set-action-phone", statement: "set-action-phone", args: { actionid: "" + choosenaction + "", button: "-", option: "" + actionsselect.container.value + "", sipuser: "" + destinationInput.getValue() + "", text: "" + presenceselect.container.value + "" } });
             }
             else if (actionsselect.container.value === "call") {
-                app.send({ mt: "SqlExec", src: "set-action-phone", statement: "set-action-phone", args: { actionid: "" + choosenaction + "", button: "-", option: "" + actionsselect.container.value + "", sipuser: "" + destinationInput.getValue() + "", text: "" + queueeselect.container.value + "" } });
+                app.send({ mt: "SqlExec", src: "set-action-phone", statement: "set-action-phone", args: { actionid: "" + choosenaction + "", button: "-", option: "" + actionsselect.container.value + "", sipuser: "" + destinationInput.getValue() + "", text: "" + rccWaitingQueueSelect.container.value + "" } });
             }
             else {
                 app.send({ mt: "SqlExec", src: "set-action-phone", statement: "set-action-phone", args: { actionid: "" + choosenaction + "", button: "-", option: "" + actionsselect.container.value + "", sipuser: "" + destinationInput.getValue() + "", text: "" + destinationText.getValue() + "" } });
@@ -392,7 +486,7 @@ innovaphone.buttonsAdmin = innovaphone.buttonsAdmin || function (start, args) {
                 app.send({ mt: "SqlExec", src: "set-action-hotkey", statement: "set-action-hotkey", args: { actionid: "" + choosenaction + "", button: "-", option: "" + actionsselect.container.value + "", sipuser: "" + destinationInput.getValue() + "", text: "" + presenceselect.container.value + "" } });
             }
             else if (actionsselect.container.value === "call") {
-                app.send({ mt: "SqlExec", src: "set-action-hotkey", statement: "set-action-hotkey", args: { actionid: "" + choosenaction + "", button: "-", option: "" + actionsselect.container.value + "", sipuser: "" + destinationInput.getValue() + "", text: "" + queueeselect.container.value + "" } });
+                app.send({ mt: "SqlExec", src: "set-action-hotkey", statement: "set-action-hotkey", args: { actionid: "" + choosenaction + "", button: "-", option: "" + actionsselect.container.value + "", sipuser: "" + destinationInput.getValue() + "", text: "" + rccWaitingQueueSelect.container.value + "" } });
             }
             else {
                 app.send({ mt: "SqlExec", src: "set-action-hotkey", statement: "set-action-hotkey", args: { actionid: "" + choosenaction + "", button: "-", option: "" + actionsselect.container.value + "", sipuser: "" + destinationInput.getValue() + "", text: "" + destinationText.getValue() + "" } });
@@ -406,7 +500,7 @@ innovaphone.buttonsAdmin = innovaphone.buttonsAdmin || function (start, args) {
                 app.send({ mt: "SqlExecBackend", src: "set-action-logging", api: "admin", statement: "set-action-logging", args: { actionid: "" + choosenaction + "", msgfilter: "" + loggingFilterInput.container.value + "", option: "" + actionsselect.container.value + "", sipuser: "" + destinationInput.getValue() + "", text: "" + presenceselect.container.value + "" } });
             }
             else if (actionsselect.container.value === "call") {
-                app.send({ mt: "SqlExecBackend", src: "set-action-logging", api: "admin", statement: "set-action-logging", args: { actionid: "" + choosenaction + "", msgfilter: "" + loggingFilterInput.container.value + "", option: "" + actionsselect.container.value + "", sipuser: "" + destinationInput.getValue() + "", text: "" + queueeselect.container.value + "" } });
+                app.send({ mt: "SqlExecBackend", src: "set-action-logging", api: "admin", statement: "set-action-logging", args: { actionid: "" + choosenaction + "", msgfilter: "" + loggingFilterInput.container.value + "", option: "" + actionsselect.container.value + "", sipuser: "" + destinationInput.getValue() + "", text: "" + rccWaitingQueueSelect.container.value + "" } });
             }
             else {
                 app.send({ mt: "SqlExecBackend", src: "set-action-logging", api: "admin", statement: "set-action-logging", args: { actionid: "" + choosenaction + "", msgfilter: "" + loggingFilterInput.container.value + "", option: "" + actionsselect.container.value + "", sipuser: "" + destinationInput.getValue() + "", text: "" + destinationText.getValue() + "" } });
@@ -416,7 +510,7 @@ innovaphone.buttonsAdmin = innovaphone.buttonsAdmin || function (start, args) {
 
     const closebutton = new innovaphone.ui1.Div(null, texts.text("close"), "button");
     closebutton.container.onclick = function () {
-        optionsdeviceDiv.container.style.display = "none";
+        closeAllModals();
         optionopen = false;
     };
 
@@ -428,10 +522,9 @@ innovaphone.buttonsAdmin = innovaphone.buttonsAdmin || function (start, args) {
     optionsdeviceDiv.add(loggingFilterInput);
     optionsdeviceDiv.add(destinationInput);
     optionsdeviceDiv.add(destinationText);
-    optionsdeviceDiv.add(destinationText);
     optionsdeviceDiv.add(workingselect);
     optionsdeviceDiv.add(presenceselect);
-    optionsdeviceDiv.add(queueeselect);
+    optionsdeviceDiv.add(rccWaitingQueueSelect);
     optionsdeviceDiv.add(submitbutton);
     optionsdeviceDiv.add(closebutton);
 
@@ -492,62 +585,261 @@ innovaphone.buttonsAdmin = innovaphone.buttonsAdmin || function (start, args) {
     main.add(rectangleContainer);
     **/
 
-    const searchOptionsDiv = new innovaphone.ui1.Div(null, null, null);
-    const searchInputDiv = searchOptionsDiv.add(new innovaphone.ui1.Div(null, null, null));
-    const searchInput = searchInputDiv.add(new innovaphone.ui1.Input(null, null, texts.text("searchitem"), null, "text", null));
-    searchInput.setAttribute("id", "search-input");
-    searchInput.container.addEventListener('input', () => {
-        filterTable(searchInput.getValue());
-    });
 
-    var tableCfg = new innovaphone.ui1.TableConfig(
-        "", // Media or Container Query
-        "quotations-table",  //Class         
-        "width: 100%; border-collapse: collapse; align-items: center; border-radius: 8px; overflow: auto;", //Style Table
-        "position: sticky; top: 0; z-index: 2;", // Style Thead
-        "padding: 10px; text-align: left; border-bottom: 1px solid var(--stroke); background-color: var(--bg2); color: var(--c2); font: normal bold normal 16px/24px Titillium Web;", // Style th
-        "", // Style tr
-        "", // Style Tbody
-        "padding: 10px; text-align: left; border: 1px solid var(--stroke); background-color: var(--card-bg);", // Style td
-        "", // Style Media-Table
-        "", // Style Media Thead
-        "", // Style Media th
-        "", // Style Media tr
-        "", // Style Media Tbody
-        ""  // Style Media td
-    );
+    function reloadQueues() {
+        if (activeQueueList) activeQueueList.container.innerHTML = "";
 
-    var table = new innovaphone.ui1.Table(tableCfg);
-    table.container.classList.add("main-tables");
-    table.container.id = "dataTable";
+        if (waitingQueueSelect) {
+            waitingQueueSelect.clearOptions();
+            waitingQueueSelect.addOption("", null, "-");
+        }
 
+        if (rccWaitingQueueSelect) {
+            rccWaitingQueueSelect.clearOptions();
+            rccWaitingQueueSelect.addOption("", null, "-");
+        }
+
+
+        app.send({ mt: "SqlExec", src: "get-waiting", statement: "get-waiting" });
+        app.send({ mt: "SqlExec", src: "get-rcc-queues", statement: "get-rcc-queues" });
+    }
+
+    // Table
+    var content = appView.add(new innovaphone.ui1.Div("flex:1 1 auto; overflow:auto;", null, "buttons-content"));
+    content.container.classList.remove("is-ready");
+    var tableHost = content.add(new innovaphone.ui1.Div("width:100%;", null, "buttons-tablehost"));
+    var tableEl = document.createElement("table");
+    tableEl.id = "dataTable";
+    tableEl.style.width = "100%";
+    tableHost.container.appendChild(tableEl);
+
+    // thead
+    var thead = document.createElement("thead");
+    var trh = document.createElement("tr");
     var columnNames = texts.text("columnNames_user");
-
-    columnNames.forEach(function (columnName) {
-        table.addColumn(null, columnName);
+    columnNames.forEach(function (name) {
+        var th = document.createElement("th");
+        th.textContent = name;
+        trh.appendChild(th);
     });
+    thead.appendChild(trh);
+    tableEl.appendChild(thead);
 
-    main.add(searchOptionsDiv);
-    main.add(table);
+    // tbody helper
+    var tbody = null;
+    function ensureTbody() {
+        tbody = tableEl.tBodies && tableEl.tBodies[0];
+        if (!tbody) {
+            tbody = document.createElement("tbody");
+            tableEl.appendChild(tbody);
+        }
+        return tbody;
+    }
 
-    var buttonDivs = [];
-    var choosenaction = "";
-    var choosendevice = "";
-    var choosentype = "";
-    var optionopen = false;
-    var editButtons = [];
-    var deleteButtons = [];
+    function buildTable() {
+        tableHost.container.innerHTML = "";
+        tableEl = document.createElement("table");
+        tableEl.id = "dataTable";
+        tableEl.style.width = "100%";
+        tableHost.container.appendChild(tableEl);
+
+        var thead = document.createElement("thead");
+        var trh = document.createElement("tr");
+        var columnNames = texts.text("columnNames_user");
+        columnNames.forEach(function (name) {
+            var th = document.createElement("th");
+            th.textContent = name;
+            trh.appendChild(th);
+        });
+        thead.appendChild(trh);
+        tableEl.appendChild(thead);
+
+        var tb = document.createElement("tbody");
+        tableEl.appendChild(tb);
+        return tb;
+    }
 
     function app_connected(domain, user, dn, appdomain) {
         if (!loaded) {
             app.send({ api: "admin", mt: "UserMessage" });
-            app.send({ mt: "SqlExec", src: "get-allactions", statement: "get-allactions" });
-            app.send({ mt: "SqlExec", src: "get-queues", statement: "get-queues" });
+            reloadActions();
+            reloadQueues();
             app.send({ api: "admin", mt: "GetConnectedShellyDevices" });
             loaded = true;
         }
         ownsip = app.logindata.sip;
     }
+
+    function renderActionsCell(id) {
+        return ""
+            + "<div class='ip-actions'>"
+            + "  <button type='button' class='ip-iconbtn' data-act='edit' data-id='" + id + "'>"
+            + "    <svg viewBox='0 0 20 20'><use xlink:href='" + ICONS + "edit'></use></svg>"
+            + "  </button>"
+            + "  <button type='button' class='ip-iconbtn' data-act='del' data-id='" + id + "'>"
+            + "    <svg viewBox='0 0 20 20'><use xlink:href='" + ICONS + "del'></use></svg>"
+            + "  </button>"
+            + "</div>";
+    }
+
+    function restoreActionIcons() {
+        var tds = tableEl.querySelectorAll("tbody td");
+        for (var i = 0; i < tds.length; i++) {
+            var td = tds[i];
+            var txt = (td.textContent || "").trim();
+            if (txt.indexOf("ACTION:") === 0) {
+                var id = txt.substring(7);
+                td.innerHTML = renderActionsCell(id);
+            }
+        }
+    }
+    function reloadActions() {
+        actionsById = {};
+        actionsDone = false;
+        pendingActionRows = [];
+        if (actionsRenderTimer) {
+            clearTimeout(actionsRenderTimer);
+            actionsRenderTimer = null;
+        }
+        app.send({ mt: "SqlExec", src: "get-allactions", statement: "get-allactions" });
+    }
+
+    function scheduleActionsRender() {
+        ensureTbody();
+        if (!actionsDone) return;
+        if (actionsRenderTimer) clearTimeout(actionsRenderTimer);
+
+        actionsRenderTimer = setTimeout(function () {
+            if (dt) {
+                try { dt.destroy(); } catch (e) { }
+                dt = null;
+            }
+
+            var tb = buildTable();
+
+            // einmalig click delegation binden
+            if (!tableEl._ipActionsBound) {
+                tableEl._ipActionsBound = true;
+
+                tableEl.addEventListener("click", function (e) {
+                    var btn = e.target.closest && e.target.closest(".ip-iconbtn");
+                    if (!btn) return;
+
+                    var id = btn.getAttribute("data-id");
+                    var act = btn.getAttribute("data-act");
+                    var data = actionsById[id];
+                    if (!data) return;
+
+                    if (act === "edit") openEditFromRow(data);
+                    else if (act === "del") {
+                        app.send({ mt: "SqlExec", src: "deletedevice", statement: "deletedevice", args: { actionid: "" + id } });
+                    }
+                }, true);
+            }
+
+            var columnNames = texts.text("columnNames_user");
+            pendingActionRows.forEach(function (r) {
+                var tr = document.createElement("tr");
+                tr.setAttribute("data-rowid", String(r.id));
+                var rid = String(r.id);
+                if (onlineIds[rid]) tr.classList.add("device-online");
+                r.row.forEach(function (cell, idx) {
+                    var td = document.createElement("td");
+                    td.setAttribute("data-label", columnNames[idx] || "");
+                    if (idx === r.row.length - 1) td.setAttribute("data-col", "actions");
+                    td.innerHTML = (cell === null || cell === undefined) ? "" : String(cell);
+                    tr.appendChild(td);
+                });
+
+                tb.appendChild(tr);
+            });
+
+            dt = new simpleDatatables.DataTable(tableEl, {
+                searchable: false,
+                fixedHeight: false,
+                perPage: 20,
+                perPageSelect: [10, 25, 50, 100],
+                labels: {
+                    placeholder: texts.text("dt_search_placeholder"),
+                    searchTitle: texts.text("dt_search_title"),
+                    perPage: texts.text("dt_per_page"),
+                    pageTitle: texts.text("dt_page_title"),
+                    noRows: texts.text("dt_no_rows"),
+                    noResults: texts.text("dt_no_results"),
+                    info: texts.text("dt_info")
+                }
+            });
+            searchInput.container.addEventListener("input", function () {
+                if (dt) dt.search(searchInput.getValue());
+            });
+            try {
+                var dtTop = tableHost.container.querySelector('.datatable-top')
+                    || (tableEl.parentElement && tableEl.parentElement.querySelector('.datatable-top'));
+                if (dtTop && searchOptionsDiv && searchOptionsDiv.container) {
+                    searchOptionsDiv.container.style.width = 'auto';
+                    searchOptionsDiv.container.style.marginLeft = 'auto';
+                    searchOptionsDiv.container.style.padding = '0';
+                    dtTop.appendChild(searchOptionsDiv.container);
+                }
+            } catch (e) { }
+
+            restoreActionIcons();
+            requestAnimationFrame(function () {
+                appView.container.classList.add("is-ready");
+            });
+
+            if (dt && typeof dt.on === "function") {
+                dt.on("datatable.page", restoreActionIcons);
+                dt.on("datatable.sort", restoreActionIcons);
+                dt.on("datatable.search", restoreActionIcons);
+                dt.on("datatable.perpage", restoreActionIcons);
+            }
+
+            pendingActionRows = [];
+            actionsRenderTimer = null;
+        }, 0);
+    }
+
+    function openEditFromRow(data) {
+        optionsHeader.container.textContent = "Options - ID: " + String(data.id);
+        choosenaction = data.id;
+        choosendevice = data.d_mac;
+        choosentype = data.d_type;
+
+        optionsdevice.container.textContent = String(data.id);
+
+        openModal(optionsdeviceDiv);
+
+        // Trigger UI
+        buttonsselect.container.style.display = "none";
+        windowselect.container.style.display = "none";
+        motionselect.container.style.display = "none";
+        loggingFilterInput.container.style.display = "none";
+
+        if (data.d_type == 1) {
+            buttonsselect.container.style.display = "block";
+            buttonsselect.container.value = data.button ? String(data.button) : "1";
+        }
+        else if (data.d_type == 2) {
+            windowselect.container.style.display = "block";
+            windowselect.container.value = String(data.button);
+        }
+        else if (data.d_type == 3) {
+            motionselect.container.style.display = "block";
+            motionselect.container.value = String(data.button);
+        }
+        else if (data.d_type == 90) {
+            loggingFilterInput.container.style.display = "block";
+            loggingFilterInput.container.value = data.msgfilter || "";
+        }
+
+        actionsselect.container.value = data.action || "chat";
+        if (typeof actionsselect.container.onchange === "function") actionsselect.container.onchange();
+
+        destinationInput.setValue(data.sip || "");
+        destinationText.setValue(data.text || "");
+    }
+
 
     function app_message(obj) {
         if (obj.api == "admin" && obj.mt == "UserMessageResult") {
@@ -557,203 +849,136 @@ innovaphone.buttonsAdmin = innovaphone.buttonsAdmin || function (start, args) {
                 ShowDevicesList.add(new innovaphone.ui1.Div(null, obj.name, null));
             }
         }
-        if (obj.api == "admin" && obj.mt == "getOnlineDevicesResult") {
-            buttonDivs[obj.id].container.style.backgroundColor = "green";
+        if (obj.api === "admin" && obj.mt === "getOnlineDevicesResult") {
+            onlineIds[String(obj.id)] = true;
+
+            var tr = tableEl.querySelector('tr[data-rowid="' + String(obj.id) + '"]');
+            if (tr) tr.classList.add("device-online");
         }
-        if (obj.mt == "SqlRow" && obj.statement == "get-queues") {
-            const option = new innovaphone.ui1.Node("option", null, obj.cn, null);
-            option.setAttribute("value", obj.cn);
-            queueeselect.add(option);
-            var deletequeue = new innovaphone.ui1.Div("margin: 10px", obj.cn + " - " + texts.text("delete"), "button");
-            deletequeue.container.addEventListener("click", function () {
-                app.send({ mt: "SqlExec", src: "deletequeues", statement: "deletequeues", args: { queueid: "" + obj.id + "" } });
-            });
-            QueueList.add(deletequeue);
-        }
-        if (obj.mt == "SqlRow" && obj.statement == "get-allactions") {
-            editButtons[obj.id] = new innovaphone.ui1.Div("margin: 10px", texts.text("edit"), "button");
-            editButtons[obj.id].container.addEventListener("click", function () {
-                choosenaction = obj.id;
-                choosendevice = obj.d_mac;
-                choosentype = obj.d_type;
-                optionsdeviceDiv.container.style.display = "block";
-                if (obj.d_type == 1) {
-                    buttonsselect.container.style.display = "block";
-                    windowselect.container.style.display = "none";
-                    motionselect.container.style.display = "none";
-                    loggingFilterInput.container.style.display = "none";
-                    if (obj.button) {
-                        buttonsselect.container.value = obj.button;
-                    }
-                    else {
-                        buttonsselect.container.value = 1;
-                    }
-                }
-                if (obj.d_type == 2) {
-                    buttonsselect.container.style.display = "none";
-                    windowselect.container.style.display = "block";
-                    motionselect.container.style.display = "none";
-                    loggingFilterInput.container.style.display = "none";
-                    windowselect.container.value = obj.button;
-                }
-                if (obj.d_type == 3) {
-                    buttonsselect.container.style.display = "none";
-                    windowselect.container.style.display = "none";
-                    motionselect.container.style.display = "block";
-                    loggingFilterInput.container.style.display = "none";
-                    motionselect.container.value = obj.button;
-                }
-                if (obj.d_type == 4) {
-                    buttonsselect.container.style.display = "none";
-                    windowselect.container.style.display = "none";
-                    motionselect.container.style.display = "none";
-                    loggingFilterInput.container.style.display = "none";
-                }
-                if (obj.d_type == 5) {
-                    buttonsselect.container.style.display = "none";
-                    windowselect.container.style.display = "none";
-                    motionselect.container.style.display = "none";
-                    loggingFilterInput.container.style.display = "none";
-                }
-                if (obj.d_type == 90) {
-                    buttonsselect.container.style.display = "none";
-                    windowselect.container.style.display = "none";
-                    motionselect.container.style.display = "none";
-                    loggingFilterInput.container.style.display = "block";
-                    loggingFilterInput.container.value = obj.button;
-                }
-                if (obj.action) {
-                    if (obj.action == "presence") {
-                        destinationInput.container.style.display = "none";
-                        destinationText.container.style.display = "none";
-                        workingselect.container.style.display = "none";
-                        presenceselect.container.style.display = "block";
-                        queueeselect.container.style.display = "none";
-                        destinationInput.setValue(ownsip);
-                        destinationText.setValue("-");
-                    }
-                    else if (obj.action == "working") {
-                        destinationInput.container.style.display = "none";
-                        destinationText.container.style.display = "none";
-                        workingselect.container.style.display = "block";
-                        presenceselect.container.style.display = "none";
-                        queueeselect.container.style.display = "none";
-                        destinationInput.setValue(ownsip);
-                        destinationText.setValue("-");
-                    }
-                    else if (obj.action == "call") {
-                        destinationInput.container.style.display = "none";
-                        destinationText.container.style.display = "none";
-                        workingselect.container.style.display = "none";
-                        presenceselect.container.style.display = "none";
-                        queueeselect.container.style.display = "block";
-                        destinationInput.container.style.display = "block";
-                        destinationText.setValue("-");
-                    }
-                    else {
-                        destinationInput.container.style.display = "block";
-                        destinationText.container.style.display = "block";
-                        workingselect.container.style.display = "none";
-                        presenceselect.container.style.display = "none";
-                        queueeselect.container.style.display = "none";
-                    }
-                    if (obj.sip) {
-                        destinationInput.setValue(obj.sip);
-                    }
-                    else {
-                        destinationInput.setValue("");
-                    }
+        // if (obj.mt === "SqlRow" && obj.statement === "get-queues") {
+        //     var cn = String(obj.cn || "");
+        //     if (!cn) return;
 
-                    if (obj.text) {
-                        destinationText.setValue(obj.text);
-                    }
-                    else {
-                        destinationText.setValue("");
-                    }
-                    actionsselect.container.value = obj.action;
-                }
-            });
-            deleteButtons[obj.id] = new innovaphone.ui1.Div(null, texts.text("delete"), "button");
-            deleteButtons[obj.id].container.onclick = function () {
-                app.send({ mt: "SqlExec", src: "deletedevice", statement: "deletedevice", args: { actionid: "" + obj.id + "" } });
-                table.removeRow(obj.id);
-            };
+        //     // dropdown option
+        //     var opt = new innovaphone.ui1.Node("option", null, cn, null);
+        //     opt.setAttribute("value", cn);
+        //     waitingQueueSelect .add(opt);
 
-            var configContainer = new innovaphone.ui1.Div(null, null, "optionsDiv");
-            configContainer.add(editButtons[obj.id]);
-            configContainer.add(deleteButtons[obj.id]);
+        //     // read-only list entry im QueueManageDiv
+        //     var line = new innovaphone.ui1.Div(
+        //         "display:flex; justify-content:space-between; align-items:center; padding:6px 0; border-bottom:1px solid rgba(255,255,255,0.08);",
+        //         null, null
+        //     );
+        //     line.add(new innovaphone.ui1.Div(null, cn, null));
+        //     QueueList.add(line);
+        // }
 
+        if (obj.mt === "SqlRow" && obj.statement === "get-allactions") {
+
+            // command mapping (presence label)
             var command = obj.text;
-
             if (obj.action === "presence") {
-                const presence = presenceactions.find(b => b.id == obj.text);
+                var presence = presenceactions.find(function (b) { return b.id == obj.text; });
                 command = presence ? presence.label : null;
             }
 
-            const d_type = devicestypes.find(b => b.id == obj.d_type);
+            var d_type = devicestypes.find(function (b) { return b.id == obj.d_type; });
 
             var trigger = obj.button;
-
-            buttons.forEach(button => {
-                if (button.id == trigger && obj.d_type == 1) {
-                    trigger = button.label;
-                }
+            buttons.forEach(function (b) {
+                if (b.id == trigger && obj.d_type == 1) trigger = b.label;
             });
 
-            var rowData = [d_type.label, obj.d_mac, trigger, obj.action, obj.sip, command, configContainer];
-            table.addRow(obj.id, rowData);
+            // data für edit modal
+            actionsById[obj.id] = {
+                id: obj.id,
+                d_mac: obj.d_mac,
+                d_type: obj.d_type,
+                button: obj.button,
+                action: obj.action,
+                sip: obj.sip,
+                text: obj.text,
+                msgfilter: (obj.d_type == 90 ? (obj.button || "") : "")
+            };
+
+            var rowData = [
+                (d_type ? d_type.label : ""),
+                obj.d_mac,
+                trigger,
+                obj.action,
+                obj.sip,
+                command,
+                "ACTION:" + obj.id
+            ];
+
+            pendingActionRows.push({ id: obj.id, row: rowData });
         }
-        if (obj.mt === "SqlInsertResult" && obj.statement == "add-device") {
-            location.reload();
+
+        if (obj.mt === "SqlRow" && obj.statement === "get-waiting") {
+            var cn = String(obj.cn || "");
+            if (cn && waitingQueueSelect) waitingQueueSelect.addOption(cn, null, cn);
+            return;
         }
-        if (obj.mt === "SqlInsertResult" && obj.statement == "add-queue") {
-            location.reload();
-        }
-        if (obj.mt === "SqlExecResult" && obj.statement == "deletequeues") {
-            location.reload();
-        }
-        if (obj.mt === "SqlInsertBackendResult" && obj.statement == "add-device") {
-            location.reload();
-        }
-        if (obj.mt === "SqlExecResult" && obj.statement === "set-action") {
-            location.reload();
-        }
-        if (obj.mt === "SqlExecBackendResult" && obj.statement === "set-action-logging") {
-            location.reload();
-        }
-        if (obj.mt === "SqlExecResult" && obj.statement === "set-action-phone") {
-            location.reload();
-        }
-        /** Only for Testing Location
-        if (obj.mt == "Location") {
-            if (obj.location == 2) {
-                upperCircle.container.style.display = "block";
-                lowerCircle.container.style.display = "none";
+
+        if (obj.mt === "SqlRow" && obj.statement === "get-rcc-queues") {
+            var cn2 = String(obj.cn || "");
+            var id = obj.id;
+            if (!cn2) return;
+
+            if (rccWaitingQueueSelect) rccWaitingQueueSelect.addOption(cn2, null, cn2);
+
+            if (activeQueueList) {
+                var row = new innovaphone.ui1.Div(
+                    "display:flex; align-items:center; justify-content:space-between; gap:10px; padding:6px 0; border-bottom:1px solid rgba(255,255,255,0.08);",
+                    null, null
+                );
+                row.add(new innovaphone.ui1.Div(null, cn2, null));
+
+                var del = row.add(new innovaphone.ui1.Div("padding:6px 10px;", "Delete", "button"));
+                del.container.onclick = function () {
+                    app.send({
+                        mt: "SqlExec",
+                        src: "deletequeues",
+                        statement: "deletequeues",
+                        args: { queueid: String(id) }
+                    });
+                };
+
+                activeQueueList.add(row);
             }
-            if (obj.location == 1) {
-                upperCircle.container.style.display = "none";
-                lowerCircle.container.style.display = "block";
-            }
+            return;
         }
-        */
+
+        if (obj.mt === "SqlInsertResult" && (obj.statement === "add-device" || obj.statement === "add-queue")) {
+            closeAllModals();
+            reloadQueues();
+        }
+        else if (obj.mt === "SqlInsertBackendResult" && obj.statement === "add-device") {
+            closeAllModals();
+            reloadActions();
+        }
+        else if (obj.mt === "SqlExecResult" && obj.statement === "deletequeues") {
+            reloadQueues();
+        }
+        else if (obj.mt === "SqlExecResult" &&
+            (obj.statement === "set-action" || obj.statement === "set-action-phone" || obj.statement === "set-action-hotkey")) {
+            closeAllModals();
+            reloadActions();
+        }
+        else if (obj.mt === "SqlExecBackendResult" && obj.statement === "set-action-logging") {
+            closeAllModals();
+            reloadActions();
+        }
+        else if (obj.mt === "SqlExecResult" && obj.statement === "deletedevice") {
+            closeAllModals();
+            reloadActions();
+        }
+
+        else if (obj.mt === "SqlExecResult" && obj.statement === "get-allactions") {
+            actionsDone = true;
+            scheduleActionsRender();
+        }
     }
-    function filterTable(value) {
-        var filterText = value.toLowerCase();
-        var tableRows = table.getRows();
 
-        for (var rowId in tableRows) {
-            var row = tableRows[rowId];
-            var tds = row.tds;
-
-            var matchFound = tds.some(td => td.container.textContent.toLowerCase().includes(filterText));
-
-            if (matchFound) {
-                tds[0].container.parentElement.style.display = "table-row";
-            } else {
-                tds[0].container.parentElement.style.display = "none";
-            }
-        }
-    }
 }
-
 innovaphone.buttonsAdmin.prototype = innovaphone.ui1.nodePrototype;

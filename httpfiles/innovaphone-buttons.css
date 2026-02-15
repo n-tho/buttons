@@ -2,24 +2,25 @@ body {
     background-color: var(--bg);
     color: var(--text-standard);
     overflow: auto;
+    font: 1.2em Arial;
 }
 
 .bodydiv {
     display: flex;
     flex-direction: column;
-    align-items: center;
-    padding: 20px;
-    justify-content: center;
+    width: 100%;
+    height: 100%;
 }
 
-.newDevices, .onlineDevices {
+/* .newDevices,
+.onlineDevices {
     margin: 10px;
     padding: 10px;
     border: 1px solid #ccc;
     width: 300px;
     text-align: center;
     justify-content: center;
-}
+} */
 
 .button {
     display: flex;
@@ -38,9 +39,10 @@ body {
     box-sizing: border-box;
 }
 
-    .button:hover {
-        background-color: #0056b3;
-    }
+.button:hover {
+    background-color: #0056b3;
+    color: var(--hover-text);
+}
 
 .optionsDiv {
     padding: 10px;
@@ -49,14 +51,14 @@ body {
     gap: 15px;
 }
 
-    .optionsDiv > .button {
-        flex: 1;
-        min-width: 100px;
-        max-width: 200px;
-        margin: 0;
-        box-sizing: border-box;
-        height: 40px;
-    }
+.optionsDiv>.button {
+    flex: 1;
+    min-width: 100px;
+    max-width: 200px;
+    margin: 0;
+    box-sizing: border-box;
+    height: 40px;
+}
 
 .data-table-container {
     max-width: 100%;
@@ -84,6 +86,7 @@ body {
     background: var(--client-bg);
 }
 
+/* 
 .main-tables thead th:not(:last-child) {
     border-right: 1px solid var(--stroke);
 }
@@ -100,15 +103,15 @@ body {
     border-bottom: none !important;
 }
 
-    .main-tables tbody tr:last-child td:first-child {
-        border-left: none !important;
-        border-bottom-left-radius: 8px;
-    }
+.main-tables tbody tr:last-child td:first-child {
+    border-left: none !important;
+    border-bottom-left-radius: 8px;
+}
 
-    .main-tables tbody tr:last-child td:last-child {
-        border-right: none !important;
-        border-bottom-right-radius: 8px;
-    }
+.main-tables tbody tr:last-child td:last-child {
+    border-right: none !important;
+    border-bottom-right-radius: 8px;
+}
 
 .main-tables thead th:first-child::before,
 .main-tables thead th:last-child::before {
@@ -178,39 +181,39 @@ body {
         border-top: none;
     }
 
-        .main-tables tbody tr td:first-child {
-            border-top-left-radius: 8px;
-            border-top-right-radius: 8px;
-        }
+    .main-tables tbody tr td:first-child {
+        border-top-left-radius: 8px;
+        border-top-right-radius: 8px;
+    }
 
-        .main-tables tbody tr td:last-child {
-            border-bottom-left-radius: 8px;
-            border-bottom-right-radius: 8px;
-            border-right: 1px solid var(--stroke) !important;
-            border-bottom: 1px solid var(--stroke) !important;
-        }
+    .main-tables tbody tr td:last-child {
+        border-bottom-left-radius: 8px;
+        border-bottom-right-radius: 8px;
+        border-right: 1px solid var(--stroke) !important;
+        border-bottom: 1px solid var(--stroke) !important;
+    }
 
-        .main-tables tbody tr td:first-child::before {
-            border-top-left-radius: 8px;
-        }
+    .main-tables tbody tr td:first-child::before {
+        border-top-left-radius: 8px;
+    }
 
-        .main-tables tbody tr td:last-child::before {
-            border-bottom-left-radius: 8px;
-        }
+    .main-tables tbody tr td:last-child::before {
+        border-bottom-left-radius: 8px;
+    }
 
-        .main-tables tbody tr td::before {
-            width: 25%;
-            background-color: var(--bg2);
-            color: var(--c2);
-            font: normal normal normal 16px/24px Titillium Web;
-            margin-right: 15px;
-            height: 100%;
-            align-content: center;
-            padding-left: 15px;
-        }
-}
+    .main-tables tbody tr td::before {
+        width: 25%;
+        background-color: var(--bg2);
+        color: var(--c2);
+        font: normal normal normal 16px/24px Titillium Web;
+        margin-right: 15px;
+        height: 100%;
+        align-content: center;
+        padding-left: 15px;
+    }
+} */
 
-.overlay {
+/* .overlay {
     position: fixed;
     top: 0;
     left: 0;
@@ -218,9 +221,9 @@ body {
     height: 100%;
     background-color: rgba(0, 0, 0, 0.5);
     z-index: 1000;
-}
+} */
 
-.devices-container {
+/* .devices-container {
     display: flex;
     flex-direction: column;
     position: fixed;
@@ -236,6 +239,107 @@ body {
     background-color: var(--button);
 }
 
-    .devices-container div {
-        margin-bottom: 10px;
+.devices-container div {
+    margin-bottom: 10px;
+} */
+
+.modal-buttons .button {
+    flex: 1;
+}
+
+#dataTable tbody tr:nth-child(odd) {
+    background-color: var(--button);
+}
+
+.datatable-wrapper {
+    width: 75%;
+    margin: 0 auto;
+}
+
+.ip-actions {
+    display: flex;
+    gap: 8px;
+    align-items: center;
+}
+
+.ip-iconbtn {
+    width: 28px;
+    height: 28px;
+    border-radius: 8px;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    background: var(--hover-text);
+    border: 0;
+}
+
+.ip-iconbtn:hover {
+    background-color: #0056b3;
+}
+
+.ip-ic {
+    width: 16px;
+    height: 16px;
+    fill: var(--text-standard);
+}
+
+@media (max-width: 700px) {
+    .datatable-container {
+        overflow: visible !important;
     }
+
+    #dataTable thead {
+        display: none;
+    }
+
+    #dataTable,
+    #dataTable tbody,
+    #dataTable tr,
+    #dataTable td {
+        display: block;
+        width: 100%;
+    }
+
+    #dataTable tr {
+        margin: 10px 0;
+        padding: 10px;
+        border-radius: 12px;
+        background: var(--button);
+    }
+
+    #dataTable td {
+        display: flex;
+        justify-content: space-between;
+        gap: 12px;
+        padding: 6px 0;
+        border: 0;
+    }
+
+    #dataTable td::before {
+        content: attr(data-label);
+        font-weight: 600;
+        opacity: 0.85;
+    }
+
+    #dataTable td[data-col="actions"] {
+        justify-content: flex-end;
+    }
+
+    #dataTable td[data-col="actions"]::before {
+        content: "";
+    }
+}
+.device-online {
+    background-color: rgba(0, 180, 0, 0.15);
+}
+
+.app-view {
+    opacity: 0;
+    pointer-events: none;
+}
+
+.app-view.is-ready {
+    opacity: 1;
+    pointer-events: auto;
+}
