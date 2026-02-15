@@ -91,13 +91,25 @@ Database.exec("SELECT * from rcc")
     .oncomplete(function (data) {
         data.forEach(function (row) {
             row.cn = String(row.cn);
-            row.pbx = String(row.pbx);
-            queues.push({ cn: row.cn, pbx: row.pbx });
+            pbx = Config.pbxname || "";
+            queues.push({ cn: row.cn, pbx: pbx });
         });
     })
     .onerror(function (error, errorText, dbErrorCode) {
         // Error handling
     });
+
+Database.exec("SELECT cn FROM pbx_waiting")
+    .oncomplete(function (data) {
+        data.forEach(function (row) {
+            var cn = String(row.cn);
+            var pbx = Config.pbxname || "";
+            var exists = queues.some(function (q) { return q.cn === cn; });
+            if (!exists) queues.push({ cn: cn, pbx: pbx });
+        });
+    })
+    .onerror(function () { });
+
 
 new JsonApi("user").onconnected(function (conn) {
     if (conn.app == "innovaphone-buttons") {
@@ -169,6 +181,24 @@ new JsonApi("admin").onconnected(function (conn) {
                     .onerror(function (error, errorText, dbErrorCode) { });
 
             }
+            if (obj.mt === "SqlInsertBackend" && obj.statement === "add-queue") {
+                var cn = String((obj.args && obj.args.queue) || "");
+                if (!cn) return;
+
+                Database.exec("INSERT INTO rcc (cn, pbx) VALUES ('" +
+                    Database.escape(cn) + "', '" +
+                    Database.escape(Config.pbxname || "") + "') RETURNING id"
+                ).oncomplete(function (data) {
+                    adminConn.send(JSON.stringify({
+                        mt: "SqlInsertBackendResult",
+                        src: obj.src,
+                        statement: obj.statement,
+                        id: (data && data[0] && data[0].id) ? data[0].id : null
+                    }));
+                });
+                return;
+            }
+
             if (obj.mt == "GetConnectedShellyDevices") {
                 shellyconns.forEach(function (shelly) {
                     conn.send(JSON.stringify({ api: "admin", mt: "GetConnectedShellyDevicesResult", name: shelly.devicename }));
@@ -2106,7 +2136,6 @@ function addDevice(conn, obj) {
     const query = "INSERT INTO devices (dev_id, d_mac, d_type, ownerguid) VALUES ('" +
         id + "', '" + mac + "', " + dtype + ", '" + owner + "') RETURNING id";
 
-
     try {
         var result = Database.exec(query);
         conn.send(JSON.stringify({
@@ -2174,3 +2203,114 @@ function UpdateLogFilters() {
 }
 
 UpdateLogFilters();
+
+//TableUsers Api
+var tableUsersConns = [];
+
+function upsertQueueMem(cn, pbx) {
+    var i;
+    for (i = 0; i < queues.length; i++) {
+        if (queues[i].cn === cn) { queues[i].pbx = pbx; return; }
+    }
+    queues.push({ cn: cn, pbx: pbx });
+}
+
+function deleteQueueMemByCn(cn) {
+    queues = queues.filter(function (q) { return q.cn !== cn; });
+}
+
+new PbxApi("PbxTableUsers").onconnected(function (conn) {
+    log("[PbxTableUsers] connected pbx=" + conn.pbx);
+    if (Config.pbxname && conn.pbx !== Config.pbxname) return;
+
+    var REPL_SRC = "repl-waiting";
+
+    function sendNext() {
+        conn.send(JSON.stringify({
+            api: "PbxTableUsers",
+            mt: "ReplicateNext",
+            src: REPL_SRC
+        }));
+    }
+
+    conn.send(JSON.stringify({
+        api: "PbxTableUsers",
+        mt: "ReplicateStart",
+        src: REPL_SRC,
+        columns: {
+            guid: { update: false },
+            cn: { update: true },
+            pseudo: { update: false }
+        },
+        add: true,
+        del: true,
+        pseudo: ["waiting"]
+    }));
+
+    conn.onmessage(function (msg) {
+        var obj;
+        try { obj = JSON.parse(msg); } catch (e) { return; }
+        if (obj.api !== "PbxTableUsers") return;
+        if (obj.src && obj.src !== REPL_SRC) return;
+
+        var c = obj.columns || obj;
+
+        if (obj.mt === "ReplicateStartResult") {
+            if (obj.error) {
+                log("[PbxTableUsers] ReplicateStartResult error=" + obj.error);
+                return;
+            }
+
+            sendNext();
+            return;
+        }
+        else if (obj.mt === "ReplicateNextResult") {
+            if (obj.error) {
+                log("[PbxTableUsers] ReplicateNextResult error=" + obj.error);
+                return;
+            }
+
+            // row payload comes via columns
+            if (obj.columns && obj.columns.guid && obj.columns.cn) {
+                var row = obj.columns;
+
+                Database.exec(
+                    "INSERT INTO pbx_waiting (guid, cn, updated) VALUES ('" +
+                    Database.escape(String(row.guid)) + "', '" +
+                    Database.escape(String(row.cn)) + "', EXTRACT(EPOCH FROM CURRENT_TIMESTAMP) * 1000) " +
+                    "ON CONFLICT (guid) DO UPDATE SET cn=EXCLUDED.cn, updated=EXCLUDED.updated"
+                );
+
+                // keep pulling until PBX sends a NextResult without columns
+                sendNext();
+                return;
+            }
+
+            // no columns => end of initial replication
+            log("[PbxTableUsers] replication finished");
+            return;
+        }
+
+
+        else if (obj.mt === "ReplicateAdd" || obj.mt === "ReplicateUpdate") {
+            if (!c.guid || !c.cn) return;
+
+            Database.exec(
+                "INSERT INTO pbx_waiting (guid, cn, updated) VALUES ('" +
+                Database.escape(String(c.guid)) + "', '" +
+                Database.escape(String(c.cn)) + "', EXTRACT(EPOCH FROM CURRENT_TIMESTAMP) * 1000) " +
+                "ON CONFLICT (guid) DO UPDATE SET cn=EXCLUDED.cn, updated=EXCLUDED.updated"
+            );
+            return;
+        }
+
+        else if (obj.mt === "ReplicateDel") {
+            if (!c.guid) return;
+            Database.exec(
+                "DELETE FROM pbx_waiting WHERE guid = '" + Database.escape(String(c.guid)) + "'"
+            );
+            return;
+        }
+    });
+});
+
