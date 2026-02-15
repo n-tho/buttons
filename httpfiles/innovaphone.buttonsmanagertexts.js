@@ -13,15 +13,24 @@ innovaphone.buttonsmanagertexts = {
         buttonhttppath: "HTTP Path",
         buttonhttpkey: "HTTP API-Key",
         buttonextSocketPath: "Generic Websocket Path",
-        buttonextSocketRemoteIp: "Source IP", 
+        buttonextSocketRemoteIp: "Source IP",
         url: "URL",
         del: "Delete",
         ok: "OK",
         cancel: "Cancel",
         addapp: "Add an App",
         editapp: "Edit the App",
-        submit: "Submit"
+        submit: "Submit",
+        buttons_settings: "Settings",
+        buttons_pbxname_tooltip: "Specifies the PBX instance this app connects to. Use the exact PBX name as configured in the system.",
+        buttons_h323_tooltip: "Defines the H.323 object used by the app. This user object is required for calls and chat functionality.",
+        buttons_e164_tooltip: "Specifies the E.164 number assigned to the app user. This number is used for call routing and signaling.",
+        buttons_httppath_tooltip: "Defines a custom HTTP endpoint that external systems can use to trigger actions in the app.",
+        buttons_httpkey_tooltip: "API key required for authentication when accessing the HTTP endpoint. Leave empty to disable authentication.",
+        buttons_extSocketPath_tooltip: "Defines the WebSocket path for external systems to connect to the app directly.",
+        buttons_extsocketremoteip_tooltip: "Restricts WebSocket access to the specified source IP address. If not set, external WebSocket access is disabled."
     },
+
     de: {
         pluginTitle: "buttons",
         buttons: "buttons",
@@ -41,6 +50,14 @@ innovaphone.buttonsmanagertexts = {
         cancel: "Abbrechen",
         addapp: "App hinzufügen",
         editapp: "App bearbeiten",
-        submit: "Speichern"
+        submit: "Speichern",
+        buttons_settings: "Einstellungen",
+        buttons_pbxname_tooltip: "Gibt die PBX-Instanz an, mit der sich die App verbindet.",
+        buttons_h323_tooltip: "Definiert das H.323-Objekt, das von der App verwendet wird. Dieses Benutzerobjekt wird für Anrufe und Chat benötigt.",
+        buttons_e164_tooltip: "Gibt die E.164-Rufnummer des App-Benutzers an. Diese Nummer wird für die Anrufsignalisierung und Weiterleitung verwendet.",
+        buttons_httppath_tooltip: "Definiert einen HTTP-Endpunkt, über den externe Systeme Aktionen in der App auslösen können.",
+        buttons_httpkey_tooltip: "API-Schlüssel zur Authentifizierung beim Zugriff auf den HTTP-Endpunkt. Leer lassen, um keine Authentifizierung zu erzwingen.",
+        buttons_extSocketPath_tooltip: "Definiert den WebSocket-Pfad, über den sich externe Systeme direkt mit der App verbinden können.",
+        buttons_extsocketremoteip_tooltip: "Beschränkt den WebSocket-Zugriff auf die angegebene Quell-IP-Adresse. Ist kein Wert gesetzt, ist der externe WebSocket-Zugriff deaktiviert."
     }
 }
