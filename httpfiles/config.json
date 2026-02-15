@@ -146,23 +146,92 @@
                 ]
             },
             {
+                "cmd": "table",
+                "name": "pbx_waiting",
+                "init": [
+                    {
+                        "cmd": "column",
+                        "name": "id",
+                        "type": "BIGSERIAL PRIMARY KEY NOT NULL"
+                    },
+                    {
+                        "cmd": "column",
+                        "name": "guid",
+                        "type": "UUID UNIQUE NOT NULL"
+                    },
+                    {
+                        "cmd": "column",
+                        "name": "cn",
+                        "type": "VARCHAR NOT NULL"
+                    },
+                    {
+                        "cmd": "column",
+                        "name": "updated",
+                        "type": "BIGINT DEFAULT EXTRACT(EPOCH FROM CURRENT_TIMESTAMP) * 1000 NOT NULL"
+                    }
+                ]
+            },
+            {
+                "cmd": "statement",
+                "name": "upsert-waiting",
+                "query": "INSERT INTO pbx_waiting (guid, cn, updated) VALUES (%s,%s, EXTRACT(EPOCH FROM CURRENT_TIMESTAMP) * 1000) ON CONFLICT (guid) DO UPDATE SET cn=EXCLUDED.cn, updated=EXCLUDED.updated",
+                "args": {
+                    "guid": {
+                        "type": "string"
+                    },
+                    "cn": {
+                        "type": "string"
+                    }
+                }
+            },
+            {
+                "cmd": "statement",
+                "name": "delete-waiting",
+                "query": "DELETE FROM pbx_waiting WHERE guid = %s",
+                "args": {
+                    "guid": {
+                        "type": "string"
+                    }
+                }
+            },
+            {
+                "cmd": "statement",
+                "name": "get-waiting",
+                "query": "SELECT cn FROM pbx_waiting ORDER BY cn"
+            },
+            {
+                "cmd": "statement",
+                "name": "get-rcc-queues",
+                "query": "SELECT id, cn FROM rcc ORDER BY cn"
+            },
+            {
                 "cmd": "statement",
                 "name": "insert-data",
                 "query": "INSERT INTO devices (dev_id, d_mac, sip) VALUES (%s,%s,%s) RETURNING id",
                 "args": {
-                    "serial": { "type": "string" },
-                    "mac": { "type": "string" },
-                    "@sip": { "type": "string" }
+                    "serial": {
+                        "type": "string"
+                    },
+                    "mac": {
+                        "type": "string"
+                    },
+                    "@sip": {
+                        "type": "string"
+                    }
                 },
                 "return": "id"
             },
             {
                 "cmd": "statement",
                 "name": "add-queue",
-                "query": "INSERT INTO rcc (cn, pbx) VALUES (%s,%s) RETURNING id",
+                "query": "INSERT INTO rcc (cn, pbx) VALUES (%s, %s) RETURNING id",
                 "args": {
-                    "queue": { "type": "string" },
-                    "pbx": { "type": "string" }
+                    "queue": {
+                        "type": "string"
+                    },
+                    "pbx": {
+                        "type": "string"
+                    }
                 },
                 "return": "id"
             },
@@ -171,10 +240,18 @@
                 "name": "add-device",
                 "query": "INSERT INTO devices (dev_id, d_mac, d_type, ownerguid) VALUES (%s,%s,%s,%s) RETURNING id",
                 "args": {
-                    "id": { "type": "string" },
-                    "mac": { "type": "string" },
-                    "dtype": { "type": "string" },
-                    "@guid": { "type": "string" }
+                    "id": {
+                        "type": "string"
+                    },
+                    "mac": {
+                        "type": "string"
+                    },
+                    "dtype": {
+                        "type": "string"
+                    },
+                    "@guid": {
+                        "type": "string"
+                    }
                 },
                 "return": "id"
             },
@@ -183,7 +260,9 @@
                 "name": "get-actions",
                 "query": "SELECT * from devices WHERE ownerguid = %s ",
                 "args": {
-                    "@guid": { "type": "string" }
+                    "@guid": {
+                        "type": "string"
+                    }
                 }
             },
             {
@@ -193,15 +272,12 @@
             },
             {
                 "cmd": "statement",
-                "name": "get-queues",
-                "query": "SELECT * from rcc"
-            },
-            {
-                "cmd": "statement",
                 "name": "deletedevice",
                 "query": "DELETE from devices WHERE id = %s",
                 "args": {
-                    "actionid": { "type": "string" }
+                    "actionid": {
+                        "type": "string"
+                    }
                 }
             },
             {
@@ -209,7 +285,9 @@
                 "name": "deletequeues",
                 "query": "DELETE from rcc WHERE id = %s",
                 "args": {
-                    "queueid": { "type": "string" }
+                    "queueid": {
+                        "type": "string"
+                    }
                 }
             },
             {
@@ -217,11 +295,21 @@
                 "name": "set-action",
                 "query": "UPDATE devices SET button = %s, sip = %s, text = %s, action = %s WHERE id = %s",
                 "args": {
-                    "button": { "type": "string" },
-                    "sipuser": { "type": "string" },
-                    "text": { "type": "string" },
-                    "option": { "type": "string" },
-                    "actionid": { "type": "string" }
+                    "button": {
+                        "type": "string"
+                    },
+                    "sipuser": {
+                        "type": "string"
+                    },
+                    "text": {
+                        "type": "string"
+                    },
+                    "option": {
+                        "type": "string"
+                    },
+                    "actionid": {
+                        "type": "string"
+                    }
                 }
             },
             {
@@ -229,11 +317,21 @@
                 "name": "set-action-phone",
                 "query": "UPDATE devices SET button = %s, sip = %s, text = %s, action = %s WHERE id = %s",
                 "args": {
-                    "@sip": { "type": "string" },
-                    "sipuser": { "type": "string" },
-                    "text": { "type": "string" },
-                    "option": { "type": "string" },
-                    "actionid": { "type": "string" }
+                    "@sip": {
+                        "type": "string"
+                    },
+                    "sipuser": {
+                        "type": "string"
+                    },
+                    "text": {
+                        "type": "string"
+                    },
+                    "option": {
+                        "type": "string"
+                    },
+                    "actionid": {
+                        "type": "string"
+                    }
                 }
             },
             {
@@ -241,11 +339,21 @@
                 "name": "set-action-hotkey",
                 "query": "UPDATE devices SET button = %s, sip = %s, text = %s, action = %s WHERE id = %s",
                 "args": {
-                    "@sip": { "type": "string" },
-                    "sipuser": { "type": "string" },
-                    "text": { "type": "string" },
-                    "option": { "type": "string" },
-                    "actionid": { "type": "string" }
+                    "@sip": {
+                        "type": "string"
+                    },
+                    "sipuser": {
+                        "type": "string"
+                    },
+                    "text": {
+                        "type": "string"
+                    },
+                    "option": {
+                        "type": "string"
+                    },
+                    "actionid": {
+                        "type": "string"
+                    }
                 }
             },
             {
@@ -253,11 +361,21 @@
                 "name": "set-action-logging",
                 "query": "UPDATE devices SET button = %s, sip = %s, text = %s, action = %s WHERE id = %s",
                 "args": {
-                    "msgfilter": { "type": "string" },
-                    "sipuser": { "type": "string" },
-                    "text": { "type": "string" },
-                    "option": { "type": "string" },
-                    "actionid": { "type": "string" }
+                    "msgfilter": {
+                        "type": "string"
+                    },
+                    "sipuser": {
+                        "type": "string"
+                    },
+                    "text": {
+                        "type": "string"
+                    },
+                    "option": {
+                        "type": "string"
+                    },
+                    "actionid": {
+                        "type": "string"
+                    }
                 }
             }
         ]
