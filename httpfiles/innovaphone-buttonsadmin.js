@@ -15,16 +15,23 @@ innovaphone.buttonsAdmin = innovaphone.buttonsAdmin || function (start, args) {
             "--button": "#303030",
             "--modal": "#3f3f3f",
             "--text-standard": "#f2f5f6",
-            "--hover-text": "#f2f5f6",
 
+            "--field-bg": "#4a4a4a",
+            "--field-text": "#f2f5f6",
+            "--field-border": "#5a5a5a",
+            "--field-focus": "#4a90ff"
         },
+
         light: {
-            "--bg": "white",
+            "--bg": "#ffffff",
             "--button": "#e0e0e0",
             "--modal": "#d0d0d0",
             "--text-standard": "#4a4a49",
-            "--hover-text": "#f2f5f6",
 
+            "--field-bg": "#ffffff",
+            "--field-text": "#4a4a49",
+            "--field-border": "#c8c8c8",
+            "--field-focus": "#4a90ff"
         }
     };
 
@@ -70,23 +77,38 @@ innovaphone.buttonsAdmin = innovaphone.buttonsAdmin || function (start, args) {
     ));
     appView.container.classList.remove("is-ready");
 
-    var overlay = new innovaphone.ui1.Div(null, null, "overlay");
     var modalOverlay = new innovaphone.ui1.Div(null, null, "overlay");
     modalOverlay.container.style.display = "none";
+    modalOverlay.container.style.position = "fixed";
+    modalOverlay.container.style.left = "0";
+    modalOverlay.container.style.top = "0";
+    modalOverlay.container.style.right = "0";
+    modalOverlay.container.style.bottom = "0";
+    modalOverlay.container.style.background = "rgba(0,0,0,0.45)";
+    modalOverlay.container.style.zIndex = "999";
+    modalOverlay.container.style.pointerEvents = "auto";
+
 
     function openModal(div) {
         modalOverlay.container.style.display = "block";
         div.container.style.display = "flex";
+        div.container.style.zIndex = "1000";
+        div.container.onclick = function (e) { if (e) e.stopPropagation(); };
+
     }
 
     function closeAllModals() {
         AddDeviceDiv && (AddDeviceDiv.container.style.display = "none");
         QueueManageDiv && (QueueManageDiv.container.style.display = "none");
         optionsdeviceDiv && (optionsdeviceDiv.container.style.display = "none");
+        ShowDevicesDiv && (ShowDevicesDiv.container.style.display = "none");
         modalOverlay.container.style.display = "none";
     }
 
-    modalOverlay.container.onclick = closeAllModals;
+    modalOverlay.container.onclick = function (e) {
+        if (e) e.stopPropagation();
+
+    };
     main.add(modalOverlay);
 
     const addDevices_Button = new innovaphone.ui1.Div("margin: 10px", texts.text("add_Device"), "button");
@@ -99,8 +121,7 @@ innovaphone.buttonsAdmin = innovaphone.buttonsAdmin || function (start, args) {
     });
     const showDevices_Button = new innovaphone.ui1.Div("margin: 10px", texts.text("connectedDevices"), "button");
     showDevices_Button.container.addEventListener("click", function () {
-        main.add(overlay)
-        ShowDevicesDiv.container.style.display = "flex";
+        openModal(ShowDevicesDiv);
     });
 
     addButtonDiv.add(addDevices_Button);
@@ -108,13 +129,15 @@ innovaphone.buttonsAdmin = innovaphone.buttonsAdmin || function (start, args) {
     addButtonDiv.add(showDevices_Button);
     appView.add(addButtonDiv);
 
-    const searchOptionsDiv = new innovaphone.ui1.Div("display:flex; justify-content:flex-end; width:75%; margin:auto; padding:6px 12px; box-sizing:border-box;", null, null);
-    const searchInputDiv = searchOptionsDiv.add(new innovaphone.ui1.Div("min-width:170px; max-width:420px; width:28%;", null, null));
+    const searchOptionsDiv = new innovaphone.ui1.Div("display:flex; justify-content:flex-end; width:75%; margin:auto; padding:6px 12px; box-sizing:border-box;", null, "search-options");
+
+    const searchInputDiv = searchOptionsDiv.add(new innovaphone.ui1.Div("min-width:170px; max-width:420px; width:28%;", null, "search-input-wrap"));
+
     const searchInput = searchInputDiv.add(new innovaphone.ui1.Input(null, null, texts.text("searchitem"), null, "text", "inputfield"));
     searchInput.setAttribute("id", "search-input");
 
     // Add Device
-    const AddDeviceDiv = new innovaphone.ui1.Div(null, texts.text("addnewDevice"), "optionsDiv");
+    const AddDeviceDiv = new innovaphone.ui1.Div(null, texts.text("addnewDevice"), "modalDiv");
     AddDeviceDiv.container.style.display = "none";
     AddDeviceDiv.container.style.position = "fixed";
     AddDeviceDiv.container.style.left = "50%";
@@ -134,7 +157,7 @@ innovaphone.buttonsAdmin = innovaphone.buttonsAdmin || function (start, args) {
     const adddevice = new innovaphone.ui1.Node("span", null, null, null);
     AddDeviceLabel.add(adddevice)
 
-    const devicetypesselect = new innovaphone.ui1.Node("select", null, null, null);
+    const devicetypesselect = new innovaphone.ui1.Node("select", null, null, "inputfield");
     const devicestypes = [
         { id: 1, label: texts.text("button") },
         { id: 2, label: texts.text("windowsensor") },
@@ -210,13 +233,14 @@ innovaphone.buttonsAdmin = innovaphone.buttonsAdmin || function (start, args) {
     main.add(AddDeviceDiv);
 
     // Queue Management
-    const QueueManageDiv = new innovaphone.ui1.Div("text-align: center;", texts.text("add_Queue"), null);
+    const QueueManageDiv = new innovaphone.ui1.Div("text-align: center;", texts.text("add_Queue"), "modalDiv");
     QueueManageDiv.container.style.position = "fixed";
     QueueManageDiv.container.style.left = "50%";
     QueueManageDiv.container.style.top = "20%";
     QueueManageDiv.container.style.transform = "translateX(-50%)";
     QueueManageDiv.container.style.zIndex = "1000";
     QueueManageDiv.container.style.minWidth = "320px";
+    QueueManageDiv.container.style.width = "calc(100vw - 40px)";
     QueueManageDiv.container.style.maxWidth = "780px";
     QueueManageDiv.container.style.boxShadow = "0 10px 40px rgba(0,0,0,0.35)";
     QueueManageDiv.container.style.padding = "14px";
@@ -226,7 +250,11 @@ innovaphone.buttonsAdmin = innovaphone.buttonsAdmin || function (start, args) {
     QueueManageDiv.container.style.flexDirection = "column";
     QueueManageDiv.container.style.gap = "12px";
 
-    activeQueueList = QueueManageDiv.add(new innovaphone.ui1.Div());
+    const queueContent = QueueManageDiv.add(
+        new innovaphone.ui1.Div("flex:1 1 auto; overflow-y:auto; padding-right:6px;", null, null)
+    );
+
+    activeQueueList = queueContent.add(new innovaphone.ui1.Div());
     //Add Queue
     const AddQueueDiv = QueueManageDiv.add(new innovaphone.ui1.Div(null, texts.text("addnewQueue"), "optionsDiv"));
     const AddQueueLabel = new innovaphone.ui1.Div(null, null, null);
@@ -236,13 +264,13 @@ innovaphone.buttonsAdmin = innovaphone.buttonsAdmin || function (start, args) {
     waitingQueueSelect.container.style.width = "100%";
     AddQueueDiv.add(waitingQueueSelect);
     //const addQueue_Name_Input = new innovaphone.ui1.Input(null, null, "WaitingQueue Longname", null, "text", "inputfield");
-    //const addQueue_Pbx_Input = new innovaphone.ui1.Input(null, null, "PBX Name", null, "text", "inputfield");
+    const addQueue_Pbx_Input = new innovaphone.ui1.Input(null, null, "PBX Name", null, "text", "inputfield");
 
     const addQueue_submitButton = new innovaphone.ui1.Div(null, texts.text("submit"), "button");
     addQueue_submitButton.container.onclick = function () {
         const queuename = waitingQueueSelect.container.value;
         //const queuename = addQueue_Name_Input.getValue();
-        //const queuepbx = addQueue_Pbx_Input.getValue();
+        const queuepbx = addQueue_Pbx_Input.getValue();
         if (!queuename) return;
         app.send({
             mt: "SqlInsert",
@@ -250,6 +278,7 @@ innovaphone.buttonsAdmin = innovaphone.buttonsAdmin || function (start, args) {
             statement: "add-queue",
             args: {
                 queue: queuename,
+                pbx: queuepbx
             }
         });
     };
@@ -259,7 +288,7 @@ innovaphone.buttonsAdmin = innovaphone.buttonsAdmin || function (start, args) {
 
     AddQueueDiv.add(AddQueueLabel);
     //AddQueueDiv.add(addQueue_Name_Input);
-    //AddQueueDiv.add(addQueue_Pbx_Input);
+    AddQueueDiv.add(addQueue_Pbx_Input);
     AddQueueDiv.add(addQueue_submitButton);
     AddQueueDiv.add(addQueue_closebutton);
 
@@ -268,28 +297,44 @@ innovaphone.buttonsAdmin = innovaphone.buttonsAdmin || function (start, args) {
 
     // Show Devices
     const ShowDevicesDiv = new innovaphone.ui1.Div(null, texts.text("connectedDevices"), "devices-container");
+    const ShowDevicesContent = ShowDevicesDiv.add(
+        new innovaphone.ui1.Div("flex:1 1 auto; overflow-y:auto; padding-right:6px;", null, null)
+    );
+    const ShowDevicesList = ShowDevicesContent.add(new innovaphone.ui1.Div(null, null, null));
+    ShowDevicesList.container.innerHTML = "";
+    ShowDevicesDiv.container.style.maxHeight = "80vh";
+    ShowDevicesDiv.container.style.overflow = "hidden";
     ShowDevicesDiv.container.style.display = "none";
+    ShowDevicesDiv.container.style.position = "fixed";
+    ShowDevicesDiv.container.style.left = "50%";
+    ShowDevicesDiv.container.style.top = "20%";
+    ShowDevicesDiv.container.style.transform = "translateX(-50%)";
+    ShowDevicesDiv.container.style.zIndex = "1000";
+    ShowDevicesDiv.container.style.minWidth = "320px";
+    ShowDevicesDiv.container.style.maxWidth = "780px";
+    ShowDevicesDiv.container.style.padding = "14px";
+    ShowDevicesDiv.container.style.backgroundColor = "var(--modal)";
+    ShowDevicesDiv.container.style.borderRadius = "12px";
+    ShowDevicesDiv.container.style.flexDirection = "column";
+    ShowDevicesDiv.container.style.gap = "12px";
 
-    const ShowDevicesList = new innovaphone.ui1.Div(null, null, null);
+
+
 
     const ShowDevices_closebutton = new innovaphone.ui1.Div(null, texts.text("close"), "button");
-    ShowDevices_closebutton.container.onclick = function () {
-        main.rem(overlay);
-        ShowDevicesDiv.container.style.display = "none";
-    };
+    ShowDevices_closebutton.container.onclick = closeAllModals;
 
-    ShowDevicesDiv.add(ShowDevicesList);
     ShowDevicesDiv.add(ShowDevices_closebutton);
 
     main.add(ShowDevicesDiv);
 
     // Options
 
-    const optionsdeviceDiv = new innovaphone.ui1.Div(null, null, "optionsDiv");
+    const optionsdeviceDiv = new innovaphone.ui1.Div(null, null, "modalDiv");
     const optionsHeader = optionsdeviceDiv.add(new innovaphone.ui1.Div("font-weight:600;", null, null));
     optionsdeviceDiv.container.style.position = "fixed";
     optionsdeviceDiv.container.style.left = "50%";
-    optionsdeviceDiv.container.style.top = "20%";
+    optionsdeviceDiv.container.style.top = "15%";
     optionsdeviceDiv.container.style.transform = "translateX(-50%)";
     optionsdeviceDiv.container.style.zIndex = "1000";
     optionsdeviceDiv.container.style.minWidth = "420px";
@@ -301,14 +346,23 @@ innovaphone.buttonsAdmin = innovaphone.buttonsAdmin || function (start, args) {
     optionsdeviceDiv.container.style.display = "none";
     optionsdeviceDiv.container.style.flexDirection = "column";
     optionsdeviceDiv.container.style.gap = "12px";
+    optionsdeviceDiv.container.style.maxHeight = "80vh";
+    optionsdeviceDiv.container.style.overflow = "hidden";
+    optionsdeviceDiv.container.style.flexDirection = "column";
 
-
+    const optionsContent = optionsdeviceDiv.add(
+        new innovaphone.ui1.Div("flex:1 1 auto; overflow-y:auto; padding-right:6px;", null, null)
+    );
+    optionsContent.container.style.display = "flex";
+    optionsContent.container.style.flexDirection = "column";
+    optionsContent.container.style.gap = "12px";
+    optionsContent.container.style.overflowX = "hidden";
 
     const optionsdeviceLabel = new innovaphone.ui1.Div(null, null, null);
     const optionsdevice = new innovaphone.ui1.Node("span", null, null, null);
     optionsdeviceLabel.add(optionsdevice)
 
-    const buttonsselect = new innovaphone.ui1.Node("select", null, null, null);
+    const buttonsselect = new innovaphone.ui1.Node("select", null, null, "inputfield");
     buttons = [
         { id: 1, label: "1-Click" },
         { id: 2, label: "2-Click" },
@@ -323,7 +377,7 @@ innovaphone.buttonsAdmin = innovaphone.buttonsAdmin || function (start, args) {
         buttonsselect.add(option);
     });
 
-    const windowselect = new innovaphone.ui1.Node("select", null, null, null);
+    const windowselect = new innovaphone.ui1.Node("select", null, null, "inputfield");
     const windows = [
         { id: 0, label: texts.text("closed") },
         { id: 1, label: texts.text("open") }
@@ -334,7 +388,7 @@ innovaphone.buttonsAdmin = innovaphone.buttonsAdmin || function (start, args) {
         windowselect.add(option);
     });
 
-    const motionselect = new innovaphone.ui1.Node("select", null, null, null);
+    const motionselect = new innovaphone.ui1.Node("select", null, null, "inputfield");
     const motions = [
         { id: 0, label: texts.text("nomotion") },
         { id: 1, label: texts.text("motion") }
@@ -345,7 +399,7 @@ innovaphone.buttonsAdmin = innovaphone.buttonsAdmin || function (start, args) {
         motionselect.add(option);
     });
 
-    const actionsselect = new innovaphone.ui1.Node("select", null, null, null);
+    const actionsselect = new innovaphone.ui1.Node("select", null, null, "inputfield");
     const actions = ["chat", "notify", "chat+notify", "phonemessage", "working", "presence", "connect", "call"];
     actions.forEach(action => {
         const option = new innovaphone.ui1.Node("option", null, action, null);
@@ -390,7 +444,7 @@ innovaphone.buttonsAdmin = innovaphone.buttonsAdmin || function (start, args) {
     const loggingFilterInput = new innovaphone.ui1.Input(null, null, "Message Filter", null, "text", "inputfield");
     const destinationInput = new innovaphone.ui1.Input(null, null, "SIP-Name", null, "text", "inputfield");
     const destinationText = new innovaphone.ui1.Input(null, null, "Text", null, "text", "inputfield");
-    const workingselect = new innovaphone.ui1.Node("select", null, null, null);
+    const workingselect = new innovaphone.ui1.Node("select", null, null, "inputfield");
     const workingactions = ["start", "stop", "toggle"];
     workingactions.forEach(action => {
         const option = new innovaphone.ui1.Node("option", null, action, null);
@@ -399,7 +453,7 @@ innovaphone.buttonsAdmin = innovaphone.buttonsAdmin || function (start, args) {
     });
     workingselect.container.style.display = "none";
 
-    presenceselect = new innovaphone.ui1.Node("select", null, null, null);
+    presenceselect = new innovaphone.ui1.Node("select", null, null, "inputfield");
     presenceactions = [
         { id: 1, label: texts.text("online") },
         { id: 2, label: texts.text("away") },
@@ -514,17 +568,17 @@ innovaphone.buttonsAdmin = innovaphone.buttonsAdmin || function (start, args) {
         optionopen = false;
     };
 
-    optionsdeviceDiv.add(optionsdeviceLabel);
-    optionsdeviceDiv.add(buttonsselect);
-    optionsdeviceDiv.add(windowselect);
-    optionsdeviceDiv.add(motionselect);
-    optionsdeviceDiv.add(actionsselect);
-    optionsdeviceDiv.add(loggingFilterInput);
-    optionsdeviceDiv.add(destinationInput);
-    optionsdeviceDiv.add(destinationText);
-    optionsdeviceDiv.add(workingselect);
-    optionsdeviceDiv.add(presenceselect);
-    optionsdeviceDiv.add(rccWaitingQueueSelect);
+    optionsContent.add(optionsdeviceLabel);
+    optionsContent.add(buttonsselect);
+    optionsContent.add(windowselect);
+    optionsContent.add(motionselect);
+    optionsContent.add(actionsselect);
+    optionsContent.add(loggingFilterInput);
+    optionsContent.add(destinationInput);
+    optionsContent.add(destinationText);
+    optionsContent.add(workingselect);
+    optionsContent.add(presenceselect);
+    optionsContent.add(rccWaitingQueueSelect);
     optionsdeviceDiv.add(submitbutton);
     optionsdeviceDiv.add(closebutton);
 
@@ -717,7 +771,6 @@ innovaphone.buttonsAdmin = innovaphone.buttonsAdmin || function (start, args) {
 
             var tb = buildTable();
 
-            // einmalig click delegation binden
             if (!tableEl._ipActionsBound) {
                 tableEl._ipActionsBound = true;
 
@@ -801,12 +854,12 @@ innovaphone.buttonsAdmin = innovaphone.buttonsAdmin || function (start, args) {
     }
 
     function openEditFromRow(data) {
-        optionsHeader.container.textContent = "Options - ID: " + String(data.id);
+        optionsHeader.container.textContent = texts.text("columnNames_user")[1] +": "+ String(data.d_mac);
         choosenaction = data.id;
         choosendevice = data.d_mac;
         choosentype = data.d_type;
 
-        optionsdevice.container.textContent = String(data.id);
+        //optionsdevice.container.textContent = String(data.id);
 
         openModal(optionsdeviceDiv);
 
@@ -889,7 +942,7 @@ innovaphone.buttonsAdmin = innovaphone.buttonsAdmin || function (start, args) {
                 if (b.id == trigger && obj.d_type == 1) trigger = b.label;
             });
 
-            // data für edit modal
+            // data edit modal
             actionsById[obj.id] = {
                 id: obj.id,
                 d_mac: obj.d_mac,
@@ -929,12 +982,14 @@ innovaphone.buttonsAdmin = innovaphone.buttonsAdmin || function (start, args) {
 
             if (activeQueueList) {
                 var row = new innovaphone.ui1.Div(
-                    "display:flex; align-items:center; justify-content:space-between; gap:10px; padding:6px 0; border-bottom:1px solid rgba(255,255,255,0.08);",
+                    "display:flex; align-items:center; justify-content:space-between; gap:16px; padding:8px 0; border-bottom:1px solid rgba(255,255,255,0.08);",
                     null, null
                 );
-                row.add(new innovaphone.ui1.Div(null, cn2, null));
 
-                var del = row.add(new innovaphone.ui1.Div("padding:6px 10px;", "Delete", "button"));
+                var nameDiv = row.add(new innovaphone.ui1.Div("flex:1 1 auto; text-align:left; word-break:break-word;", cn2, null));
+
+                var del = row.add(new innovaphone.ui1.Div("flex:0 0 110px; text-align:center; padding:6px 0;", texts.text("delete"), "button"));
+
                 del.container.onclick = function () {
                     app.send({
                         mt: "SqlExec",

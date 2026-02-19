@@ -14,6 +14,8 @@ innovaphone.buttonsmanagertexts = {
         buttonhttpkey: "HTTP API-Key",
         buttonextSocketPath: "Generic Websocket Path",
         buttonextSocketRemoteIp: "Source IP",
+        buttonextMQTTRemoteIP: "MQTT IP",
+        buttonextMQTTRemotePort: "MQTT Port",
         url: "URL",
         del: "Delete",
         ok: "OK",
@@ -28,7 +30,9 @@ innovaphone.buttonsmanagertexts = {
         buttons_httppath_tooltip: "Defines a custom HTTP endpoint that external systems can use to trigger actions in the app.",
         buttons_httpkey_tooltip: "API key required for authentication when accessing the HTTP endpoint. Leave empty to disable authentication.",
         buttons_extSocketPath_tooltip: "Defines the WebSocket path for external systems to connect to the app directly.",
-        buttons_extsocketremoteip_tooltip: "Restricts WebSocket access to the specified source IP address. If not set, external WebSocket access is disabled."
+        buttons_extsocketremoteip_tooltip: "Restricts WebSocket access to the specified source IP address. If not set, external WebSocket access is disabled.",
+        buttons_mqttbrokerip_tooltip: "Defines a custom MQTT Broker IP address.",
+        buttons_mqttbrokerport_tooltip: "Defines the listen port used for the MQTT broker."
     },
 
     de: {
@@ -44,6 +48,8 @@ innovaphone.buttonsmanagertexts = {
         buttonhttpkey: "HTTP API-Key",
         buttonextSocketPath: "Universal Websocketpfad",
         buttonextSocketRemoteIp: "Quell-IP",
+        buttonextMQTTRemoteIP: "MQTT IP",
+        buttonextMQTTRemotePort: "MQTT Port",
         url: "URL",
         del: "Löschen",
         ok: "OK",
@@ -58,6 +64,8 @@ innovaphone.buttonsmanagertexts = {
         buttons_httppath_tooltip: "Definiert einen HTTP-Endpunkt, über den externe Systeme Aktionen in der App auslösen können.",
         buttons_httpkey_tooltip: "API-Schlüssel zur Authentifizierung beim Zugriff auf den HTTP-Endpunkt. Leer lassen, um keine Authentifizierung zu erzwingen.",
         buttons_extSocketPath_tooltip: "Definiert den WebSocket-Pfad, über den sich externe Systeme direkt mit der App verbinden können.",
-        buttons_extsocketremoteip_tooltip: "Beschränkt den WebSocket-Zugriff auf die angegebene Quell-IP-Adresse. Ist kein Wert gesetzt, ist der externe WebSocket-Zugriff deaktiviert."
+        buttons_extsocketremoteip_tooltip: "Beschränkt den WebSocket-Zugriff auf die angegebene Quell-IP-Adresse. Ist kein Wert gesetzt, ist der externe WebSocket-Zugriff deaktiviert.",
+        buttons_mqttbrokerip_tooltip: "Definiert die IP Adresse für den MQTT Broker",
+        buttons_mqttbrokerport_tooltip: "Definiert den Port für den MQTT Broker",
     }
 }

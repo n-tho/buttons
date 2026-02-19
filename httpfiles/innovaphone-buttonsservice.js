@@ -91,7 +91,7 @@ Database.exec("SELECT * from rcc")
     .oncomplete(function (data) {
         data.forEach(function (row) {
             row.cn = String(row.cn);
-            pbx = Config.pbxname || "";
+            pbx = String(row.pbx) || "";
             queues.push({ cn: row.cn, pbx: pbx });
         });
     })
@@ -187,7 +187,7 @@ new JsonApi("admin").onconnected(function (conn) {
 
                 Database.exec("INSERT INTO rcc (cn, pbx) VALUES ('" +
                     Database.escape(cn) + "', '" +
-                    Database.escape(Config.pbxname || "") + "') RETURNING id"
+                    Database.escape(pbx || "") + "') RETURNING id"
                 ).oncomplete(function (data) {
                     adminConn.send(JSON.stringify({
                         mt: "SqlInsertBackendResult",

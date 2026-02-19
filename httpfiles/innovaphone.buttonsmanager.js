@@ -47,8 +47,12 @@ plugin.innovaphone.buttonsmanager = plugin.innovaphone.buttonsmanager || functio
 
     var body = this.add(new innovaphone.ui1.Div(null, null, "innovaphone-buttons-body"));
     var panel = body.add(new innovaphone.ui1.Div(null, null, "innovaphone-buttons-panel"));
-    var panel2 = body.add(new innovaphone.ui1.Div(null, null, "innovaphone-buttons-panel"));
-
+    //var panel2 = body.add(new innovaphone.ui1.Div(null, null, "innovaphone-buttons-panel"));
+    body.container.style.height = "100%";
+    body.container.style.display = "flex";
+    panel.container.style.position = "relative";
+    panel.container.style.flex = "1 1 0";
+    console.log(panel.container.getBoundingClientRect().height);
     var configItems = null;
     var configItemsInitialized = false;
     var settingsOkBtn = null;
@@ -200,7 +204,7 @@ plugin.innovaphone.buttonsmanager = plugin.innovaphone.buttonsmanager || functio
 
     function read() {
         panel.clear();
-        panel2.clear();
+        //panel2.clear();
         //settings
         var settingsBtn = panel
             .add(new innovaphone.ui1.Div("display:flex; flex-direction:row; position:relative; z-index:2;", null, "innovaphone-buttons-obj"))
@@ -215,24 +219,6 @@ plugin.innovaphone.buttonsmanager = plugin.innovaphone.buttonsmanager || functio
         buttonsList = panel.add(new innovaphone.ui1.Scrolling("left:0px; right:0px; margin-top:0px; bottom:0px; z-index:1;", -1, -1));
 
         copyPwd = null;
-
-        // var buttonsconfig1 = panel2.add(new innovaphone.ui1.Div(null, null, "innovaphone-buttons-configpanel"));
-        // var buttonsconfig2 = panel2.add(new innovaphone.ui1.Div(null, null, "innovaphone-buttons-configpanel"));
-        // var buttonsconfig2_1 = panel2.add(new innovaphone.ui1.Div(null, null, "innovaphone-buttons-configpanel"));
-        // var buttonsconfig3 = panel2.add(new innovaphone.ui1.Div(null, null, "innovaphone-buttons-configpanel"));
-        // pbxname = buttonsconfig1.add(new ConfigText("pbx", null, 150)).testId("innovaphone-buttons-pbxname");
-        // buttons_h323 = buttonsconfig1.add(new ConfigText("buttonuser", null, 150)).testId("innovaphone-buttons-buttonuser");
-        // buttons_e164 = buttonsconfig1.add(new ConfigText("buttone164", null, 150)).testId("innovaphone-buttons-buttone164");
-        // buttons_httppath = buttonsconfig2.add(new ConfigText("buttonhttppath", null, 150)).testId("innovaphone-buttons-buttone164");
-        // buttons_httpkey = buttonsconfig2.add(new ConfigText("buttonhttpkey", null, 150)).testId("innovaphone-buttons-buttone164");
-        // buttons_extSocketPath = buttonsconfig2_1.add(new ConfigText("buttonextSocketPath", null, 150)).testId("innovaphone-buttons-buttone164");
-        // buttons_extsocketremoteip = buttonsconfig2_1.add(new ConfigText("buttonextsocketremoteip", null, 150)).testId("innovaphone-buttons-buttone164");
-
-        // var savebutton = new innovaphone.ui1.Div(null, texts.text("submit"), "button");
-        // savebutton.container.onclick = function () {
-        //     sendConfigUpdate();
-        // };
-        //buttonsconfig3.add(savebutton);
         src.send({ mt: "GetAppObjects", api: "PbxAdminApi", uri: item.httpsUri.slice(0, item.httpsUri.lastIndexOf("/")) });
         instance.send({ api: "Config", mt: "ReadConfig" });
     }
@@ -290,22 +276,20 @@ plugin.innovaphone.buttonsmanager = plugin.innovaphone.buttonsmanager || functio
         }
 
         function isValidE164(e164) {
-           return /^\+?[0-9*#]+$/.test(e164);
+            return /^\+?[0-9*#]+$/.test(e164);
         }
 
         var header = panel.add(new innovaphone.ui1.Div("position: absolute; box-sizing: border-box; padding: 10px; width: 100%; color: var(--innovaphone-buttons-c2); font-size: 18px;")).addTranslation(texts, "buttons_settings");
         var content = panel.add(new innovaphone.ui1.Scrolling("position:absolute; width:100%; top:50px; bottom:40px; margin-top: 5px;", -1, -1, 9, "red"));
         content.container.style.overflowY = "auto";
         content.container.style.overflowX = "hidden";
-        var footer = panel.add(new innovaphone.ui1.Div("position:absolute; width:100%; bottom:0px; height:40px"));
-        settingsOkBtn = footer.add(new innovaphone.ui1.Div("right:140px; bottom:10px", null, "innovaphone-buttons-button")).addTranslation(texts, "ok")
+        var footer = panel.add(new innovaphone.ui1.Div("position:absolute; left:0; right:0; bottom:0; height:40px;"));
+        settingsOkBtn = footer.add(new innovaphone.ui1.Div("position:absolute; right:140px; bottom:10px", null, "innovaphone-buttons-button")).addTranslation(texts, "ok")
             .addEvent("click", function () {
                 if (validateSettings()) sendConfigUpdate();
             })
             .testId("innovaphone-buttons-settings-ok");
-        footer.add(new innovaphone.ui1.Div("right:10px; bottom:10px", null, "innovaphone-buttons-button")).addTranslation(texts, "cancel").addEvent("click", oncancelSettings).testId("innovaphone-buttons-settings-cancel");
-
-
+        footer.add(new innovaphone.ui1.Div("position:absolute; right:10px; bottom:10px", null, "innovaphone-buttons-button")).addTranslation(texts, "cancel").addEvent("click", oncancelSettings).testId("innovaphone-buttons-settings-cancel");
         settingsFields = {};
         pbxname = content.add(new ConfigText2("pbx", null, 150)).testId("innovaphone-buttons-pbxname");
         pbxname.setAttribute("placeholder", "master");
@@ -321,21 +305,29 @@ plugin.innovaphone.buttonsmanager = plugin.innovaphone.buttonsmanager || functio
         buttons_e164.setAttribute("placeholder", "E.164");
         settingsFields.e164 = buttons_e164;
 
-        buttons_httppath = content.add(new ConfigText2("buttonhttppath", null, 150)).testId("innovaphone-buttons-buttone164");
+        buttons_httppath = content.add(new ConfigText2("buttonhttppath", null, 150)).testId("innovaphone-buttons-buttonhttppath");
         buttons_httppath.setAttribute("placeholder", "HTTP Path");
         settingsFields.httppath = buttons_httppath;
 
-        buttons_httpkey = content.add(new ConfigText2("buttonhttpkey", null, 150)).testId("innovaphone-buttons-buttone164");
+        buttons_httpkey = content.add(new ConfigText2("buttonhttpkey", null, 150)).testId("innovaphone-buttons-buttonhttpkey");
         buttons_httpkey.setAttribute("placeholder", "HTTP API-Key");
         settingsFields.httpkey = buttons_httpkey;
 
-        buttons_extSocketPath = content.add(new ConfigText2("buttonextSocketPath", null, 150)).testId("innovaphone-buttons-buttone164");
+        buttons_extSocketPath = content.add(new ConfigText2("buttonextSocketPath", null, 150)).testId("innovaphone-buttons-buttonextSocketPath");
         buttons_extSocketPath.setAttribute("placeholder", "Ext Socket Path");
         settingsFields.extsocketpath = buttons_extSocketPath;
 
-        buttons_extsocketremoteip = content.add(new ConfigText2("buttonextSocketRemoteIp", null, 150)).testId("innovaphone-buttons-buttone164");
+        buttons_extsocketremoteip = content.add(new ConfigText2("buttonextSocketRemoteIp", null, 150)).testId("innovaphone-buttons-buttonextSocketRemoteIp");
         buttons_extsocketremoteip.setAttribute("placeholder", "Ext Socket Remote IP");
         settingsFields.extsocketremoteip = buttons_extsocketremoteip;
+
+        buttons_mqttbrokerip = content.add(new ConfigText2("buttonextMQTTRemoteIP", null, 150)).testId("innovaphone-buttonsbuttonextMQTTRemoteIP");
+        buttons_mqttbrokerip.setAttribute("placeholder", "MQTT Broker IP");
+        settingsFields.mqttbrokerip = buttons_mqttbrokerip;
+
+        buttons_mqttbrokerport = content.add(new ConfigPort("buttonextMQTTRemotePort", null, 150)).testId("innovaphone-buttons-buttonextMQTTRemotePort");
+        buttons_mqttbrokerport.setAttribute("placeholder", "MQTT Broker Port");
+        settingsFields.mqttbrokerport = buttons_mqttbrokerport;
 
         addTooltipTranslation(settingsFields.pbxname, "buttons_pbxname_tooltip");
         addTooltipTranslation(settingsFields.hwid, "buttons_h323_tooltip");
@@ -344,6 +336,8 @@ plugin.innovaphone.buttonsmanager = plugin.innovaphone.buttonsmanager || functio
         addTooltipTranslation(settingsFields.httpkey, "buttons_httpkey_tooltip");
         addTooltipTranslation(settingsFields.extsocketpath, "buttons_extSocketPath_tooltip");
         addTooltipTranslation(settingsFields.extsocketremoteip, "buttons_extsocketremoteip_tooltip");
+        addTooltipTranslation(settingsFields.mqttbrokerip, "buttons_mqttbrokerip_tooltip");
+        addTooltipTranslation(settingsFields.mqttbrokerport, "buttons_mqttbrokerport_tooltip");
 
         settingsValidators = [
 
@@ -378,9 +372,14 @@ plugin.innovaphone.buttonsmanager = plugin.innovaphone.buttonsmanager || functio
                 value: function () { return settingsFields.extsocketremoteip.getValue(); },
                 validator: optional(isValidIPv4),
                 msg: "Invalid IPv4 address"
-            }
+            },
+            {
+                field: settingsFields.mqttbrokerip,
+                value: function () { return settingsFields.mqttbrokerip.getValue(); },
+                validator: optional(isValidIPv4),
+                msg: "Invalid IPv4 address"
+            },
         ];
-
 
         function validateSettings() {
             var ok = validateRequiredField(settingsValidators);
@@ -476,7 +475,7 @@ plugin.innovaphone.buttonsmanager = plugin.innovaphone.buttonsmanager || functio
         }
         function onedit() {
             panel.clear();
-            panel2.clear();
+            //panel2.clear();
             var header = panel.add(new innovaphone.ui1.Div("position:absolute; box-sizing:border-box; padding:10px; width:100%; color: var(--innovaphone-buttons-c2); font-size: 18px;")).addTranslation(texts, "editapp");
             var content = panel.add(new innovaphone.ui1.Scrolling("position:absolute; width:100%; top:50px; bottom:40px; margin-top: 5px;", -1, -1, 9, "red"));
             new Editbuttons(obj, content);
@@ -619,6 +618,7 @@ plugin.innovaphone.buttonsmanager = plugin.innovaphone.buttonsmanager || functio
         this.input = input;
     }
     ConfigText2.prototype = innovaphone.ui1.nodePrototype;
+
     function ConfigTemplate(sip, template) {
         this.createNode("div", "position:relative; display:flex; margin-right: 5px;");
         var checkbox = this.add(new innovaphone.ui1.Checkbox("position:relative; margin: 7px 0px 7px 15px; width: 20px; height:20px; background-color:var(--innovaphone-buttons-green);", false, null, "var(--innovaphone-buttons-green)", "white", "var(--innovaphone-buttons-c1)"));
@@ -632,5 +632,50 @@ plugin.innovaphone.buttonsmanager = plugin.innovaphone.buttonsmanager || functio
         this.setError = function (on) { label.container.style.border = (on ? "1px solid red" : null); };
     }
     ConfigTemplate.prototype = innovaphone.ui1.nodePrototype;
+
+    function ConfigPort(label, text, width) {
+        this.createNode("div", "position:relative; display:flex; align-items:center; margin-bottom:12px;");
+
+        var label = this.add(new innovaphone.ui1.Div("width:250px; flex-shrink:0;", null, "innovaphone-buttons-label")
+        ).addTranslation(texts, label);
+
+        var inputDiv = this.add(new innovaphone.ui1.Div("position:relative; width:" + width + "px"));
+
+        var input = inputDiv.add(new innovaphone.ui1.Input(null, text, null, 100, "number", "innovaphone-buttons-input"));
+
+        input.container.min = 1;
+        input.container.max = 65535;
+        input.container.step = 1;
+        input.container.placeholder = "1-65535";
+
+        input.container.oninput = function () { setFieldErrorStyle(input.container, false); };
+
+        var err = this.add(
+            new innovaphone.ui1.Div("margin-left:250px; margin-top:2px; font-size:12px; color:#e53935; display:none;")
+        );
+
+        this.getValue = function () { return input.getValue(); };
+        this.setValue = function (value) { input.setValue(value); };
+        this.testId = function (id) { input.testId(id); return this; };
+
+        this.setError = function (on, msg) {
+            setFieldErrorStyle(input.container, !!on);
+            if (on) {
+                err.container.style.display = "block";
+                err.container.innerText = msg || "Invalid port";
+            }
+            else {
+                err.container.style.display = "none";
+                err.container.innerText = "";
+            }
+        };
+
+        this.setTooltip = function (t) { setTooltip(input.container, t); };
+        this.setAttribute = function (name, value) { input.container.setAttribute(name, value); };
+
+        this.input = input;
+    }
+
+    ConfigPort.prototype = innovaphone.ui1.nodePrototype;
 }
 plugin.innovaphone.buttonsmanager.prototype = innovaphone.ui1.nodePrototype;

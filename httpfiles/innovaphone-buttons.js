@@ -17,15 +17,24 @@ innovaphone.buttons = innovaphone.buttons || function (start, args) {
             "--text-standard": "#f2f5f6",
             "--hover-text": "#f2f5f6",
 
+            "--field-bg": "#4a4a4a",
+            "--field-text": "#f2f5f6",
+            "--field-border": "#5a5a5a",
+            "--field-focus": "#4a90ff"
         },
         light: {
-            "--bg": "white",
+            "--bg": "#ffffff",
             "--button": "#e0e0e0",
             "--modal": "#d0d0d0",
             "--text-standard": "#4a4a49",
             "--hover-text": "#f2f5f6",
 
+            "--field-bg": "#ffffff",
+            "--field-text": "#4a4a49",
+            "--field-border": "#c8c8c8",
+            "--field-focus": "#4a90ff"
         }
+
     };
 
     var loaded = false;
@@ -52,6 +61,7 @@ innovaphone.buttons = innovaphone.buttons || function (start, args) {
     var actionsRenderTimer = null;
     var optionopen = false;
     var pendingDeleteId = null;
+
     var ICONS = "icons.svg#";
 
     var main = new innovaphone.ui1.Div(
@@ -83,6 +93,15 @@ innovaphone.buttons = innovaphone.buttons || function (start, args) {
     //modal overlay
     var modalOverlay = new innovaphone.ui1.Div(null, null, "overlay");
     modalOverlay.container.style.display = "none";
+    modalOverlay.container.style.position = "fixed";
+    modalOverlay.container.style.left = "0";
+    modalOverlay.container.style.top = "0";
+    modalOverlay.container.style.right = "0";
+    modalOverlay.container.style.bottom = "0";
+    modalOverlay.container.style.background = "rgba(0,0,0,0.45)";
+    modalOverlay.container.style.zIndex = "999";
+    modalOverlay.container.style.pointerEvents = "auto";
+
 
     function openAddDeviceModal() {
         modalOverlay.container.style.display = "block";
@@ -92,6 +111,7 @@ innovaphone.buttons = innovaphone.buttons || function (start, args) {
     function openEditModal() {
         modalOverlay.container.style.display = "block";
         optionsdeviceDiv.container.style.display = "flex";
+
     }
 
     function closeAllModals() {
@@ -100,7 +120,10 @@ innovaphone.buttons = innovaphone.buttons || function (start, args) {
         modalOverlay.container.style.display = "none";
     }
 
-    modalOverlay.container.onclick = closeAllModals;
+    modalOverlay.container.onclick = function (e) {
+        if (e) e.stopPropagation();
+
+    };
 
 
     main.add(modalOverlay);
@@ -110,7 +133,7 @@ innovaphone.buttons = innovaphone.buttons || function (start, args) {
     const addDevices_Button = topbarRight.add(new innovaphone.ui1.Div(null, texts.text("add_Device"), "button"));
     addDevices_Button.container.addEventListener("click", openAddDeviceModal);
 
-    const AddDeviceDiv = new innovaphone.ui1.Div(null, texts.text("addnewDevice"), "optionsDiv");
+    const AddDeviceDiv = new innovaphone.ui1.Div(null, texts.text("addnewDevice"), "modalDiv");
     AddDeviceDiv.container.style.display = "none";
 
     // Modal-Style
@@ -167,7 +190,7 @@ innovaphone.buttons = innovaphone.buttons || function (start, args) {
 
 
 
-    const devicetypesselect = new innovaphone.ui1.Node("select", null, null, null);
+    const devicetypesselect = new innovaphone.ui1.Node("select", null, null, "inputfield");
     const devicestypes = [
         { id: 1, label: texts.text("button") },
         { id: 2, label: texts.text("windowsensor") },
@@ -239,8 +262,9 @@ innovaphone.buttons = innovaphone.buttons || function (start, args) {
 
     main.add(AddDeviceDiv);
 
-    const optionsdeviceDiv = new innovaphone.ui1.Div(null, null, "optionsDiv");
-    const optionsdeviceDivLabel = optionsdeviceDiv.add(new innovaphone.ui1.Div(null, "Options - ID: ", null));
+    const optionsdeviceDiv = new innovaphone.ui1.Div(null, null, "modalDiv");
+    const optionsdeviceDivLabel = optionsdeviceDiv.add(new innovaphone.ui1.Div("font-weight: 600;", texts.text("columnNames_user")[1] + ": ", null));
+
     optionsdeviceDiv.container.style.position = "fixed";
     optionsdeviceDiv.container.style.left = "50%";
     optionsdeviceDiv.container.style.top = "20%";
@@ -260,7 +284,7 @@ innovaphone.buttons = innovaphone.buttons || function (start, args) {
     const optionsdevice = new innovaphone.ui1.Node("span", null, null, null);
     optionsdeviceLabel.add(optionsdevice)
 
-    const buttonsselect = new innovaphone.ui1.Node("select", null, null, null);
+    const buttonsselect = new innovaphone.ui1.Node("select", null, null, "inputfield");
     const buttons = [
         { id: 1, label: "1-Click" },
         { id: 2, label: "2-Click" },
@@ -275,7 +299,7 @@ innovaphone.buttons = innovaphone.buttons || function (start, args) {
         buttonsselect.add(option);
     });
 
-    const windowselect = new innovaphone.ui1.Node("select", null, null, null);
+    const windowselect = new innovaphone.ui1.Node("select", null, null, "inputfield");
     const windows = [
         { id: 0, label: texts.text("closed") },
         { id: 1, label: texts.text("open") }
@@ -286,7 +310,7 @@ innovaphone.buttons = innovaphone.buttons || function (start, args) {
         windowselect.add(option);
     });
 
-    const motionselect = new innovaphone.ui1.Node("select", null, null, null);
+    const motionselect = new innovaphone.ui1.Node("select", null, null, "inputfield");
     const motions = [
         { id: 0, label: texts.text("nomotion") },
         { id: 1, label: texts.text("motion") }
@@ -297,7 +321,7 @@ innovaphone.buttons = innovaphone.buttons || function (start, args) {
         motionselect.add(option);
     });
 
-    const actionsselect = new innovaphone.ui1.Node("select", null, null, null);
+    const actionsselect = new innovaphone.ui1.Node("select", null, null, "inputfield");
     const actions = ["chat", "notify", "chat+notify", "phonemessage", "working", "presence", "connect", "call"];
     actions.forEach(action => {
         const option = new innovaphone.ui1.Node("option", null, action, null);
@@ -342,7 +366,7 @@ innovaphone.buttons = innovaphone.buttons || function (start, args) {
 
     const destinationInput = new innovaphone.ui1.Input(null, null, "SIP-Name", null, "text", "inputfield");
     const destinationText = new innovaphone.ui1.Input(null, null, "Text", null, "text", "inputfield");
-    const workingselect = new innovaphone.ui1.Node("select", null, null, null);
+    const workingselect = new innovaphone.ui1.Node("select", null, null, "inputfield");
     const workingactions = ["start", "stop", "toggle"];
     workingactions.forEach(action => {
         const option = new innovaphone.ui1.Node("option", null, action, null);
@@ -351,7 +375,7 @@ innovaphone.buttons = innovaphone.buttons || function (start, args) {
     });
     workingselect.container.style.display = "none";
 
-    const presenceselect = new innovaphone.ui1.Node("select", null, null, null);
+    const presenceselect = new innovaphone.ui1.Node("select", null, null, "inputfield");
     const presenceactions = [
         { id: 1, label: texts.text("online") },
         { id: 2, label: texts.text("away") },
@@ -365,7 +389,7 @@ innovaphone.buttons = innovaphone.buttons || function (start, args) {
     });
     presenceselect.container.style.display = "none";
 
-    const queueeselect = new innovaphone.ui1.Node("select", null, null, null);
+    const queueeselect = new innovaphone.ui1.Node("select", null, null, "inputfield");
     queueeselect.container.style.display = "none";
 
     const submitbutton = new innovaphone.ui1.Div(null, texts.text("submit"), "button");
@@ -568,7 +592,7 @@ innovaphone.buttons = innovaphone.buttons || function (start, args) {
     // Adding the rectangle container to the main Div
     main.add(rectangleContainer);
     **/
-    
+
     function reloadQueues() {
         queueeselect.container.innerHTML = "";
         var opt = new innovaphone.ui1.Node("option", null, "-", null);
@@ -762,6 +786,11 @@ innovaphone.buttons = innovaphone.buttons || function (start, args) {
             queueeselect.add(option);
         }
         else if (obj.mt == "SqlRow" && obj.statement == "get-actions") {
+            var command = obj.text;
+            if (obj.action === "presence") {
+                var presence = presenceactions.find(function (b) { return b.id == obj.text; });
+                command = presence ? presence.label : null;
+            }
 
             var d_type = devicestypes.find(function (b) { return b.id == obj.d_type; });
             var trigger = obj.button;
@@ -785,7 +814,7 @@ innovaphone.buttons = innovaphone.buttons || function (start, args) {
                 trigger,
                 obj.action,
                 obj.sip,
-                obj.text,
+                command,
                 "ACTION:" + obj.id
             ];
 

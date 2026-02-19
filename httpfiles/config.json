@@ -1,11 +1,9 @@
 {
     "database": {
-        "init": [
-            {
+        "init": [{
                 "cmd": "table",
                 "name": "devices",
-                "init": [
-                    {
+                "init": [{
                         "cmd": "column",
                         "name": "id",
                         "type": "BIGSERIAL PRIMARY KEY NOT NULL"
@@ -60,8 +58,7 @@
             {
                 "cmd": "table",
                 "name": "mwi",
-                "init": [
-                    {
+                "init": [{
                         "cmd": "column",
                         "name": "id",
                         "type": "BIGSERIAL PRIMARY KEY NOT NULL"
@@ -86,8 +83,7 @@
             {
                 "cmd": "table",
                 "name": "rcc",
-                "init": [
-                    {
+                "init": [{
                         "cmd": "column",
                         "name": "id",
                         "type": "BIGSERIAL PRIMARY KEY NOT NULL"
@@ -107,8 +103,7 @@
             {
                 "cmd": "table",
                 "name": "history",
-                "init": [
-                    {
+                "init": [{
                         "cmd": "column",
                         "name": "id",
                         "type": "BIGSERIAL PRIMARY KEY NOT NULL"
@@ -148,8 +143,7 @@
             {
                 "cmd": "table",
                 "name": "pbx_waiting",
-                "init": [
-                    {
+                "init": [{
                         "cmd": "column",
                         "name": "id",
                         "type": "BIGSERIAL PRIMARY KEY NOT NULL"
@@ -381,8 +375,7 @@
         ]
     },
     "config": {
-        "init": [
-            {
+        "init": [{
                 "cmd": "item",
                 "name": "pbxname",
                 "type": "STRING",

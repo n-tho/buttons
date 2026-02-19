@@ -12,16 +12,6 @@ body {
     height: 100%;
 }
 
-/* .newDevices,
-.onlineDevices {
-    margin: 10px;
-    padding: 10px;
-    border: 1px solid #ccc;
-    width: 300px;
-    text-align: center;
-    justify-content: center;
-} */
-
 .button {
     display: flex;
     align-items: center;
@@ -39,10 +29,6 @@ body {
     box-sizing: border-box;
 }
 
-.button:hover {
-    background-color: #0056b3;
-    color: var(--hover-text);
-}
 
 .optionsDiv {
     padding: 10px;
@@ -86,163 +72,6 @@ body {
     background: var(--client-bg);
 }
 
-/* 
-.main-tables thead th:not(:last-child) {
-    border-right: 1px solid var(--stroke);
-}
-
-.main-tables tbody tr td:first-child {
-    border-left: none !important;
-}
-
-.main-tables tbody tr td:last-child {
-    border-right: none !important;
-}
-
-.main-tables tbody tr:last-child td {
-    border-bottom: none !important;
-}
-
-.main-tables tbody tr:last-child td:first-child {
-    border-left: none !important;
-    border-bottom-left-radius: 8px;
-}
-
-.main-tables tbody tr:last-child td:last-child {
-    border-right: none !important;
-    border-bottom-right-radius: 8px;
-}
-
-.main-tables thead th:first-child::before,
-.main-tables thead th:last-child::before {
-    background-color: var(--client-bg);
-    width: 10px;
-    height: 10px;
-    top: 0;
-    content: "";
-    display: block;
-    position: absolute !important;
-}
-
-.main-tables thead th:first-child::after,
-.main-tables thead th:last-child::after {
-    background-color: var(--bg2);
-    display: block;
-    content: "";
-    top: 0;
-    position: absolute;
-    width: 10px;
-    height: 10px;
-}
-
-.main-tables thead th:first-child::before {
-    left: 0;
-}
-
-.main-tables thead th:last-child::before {
-    right: 0;
-}
-
-.main-tables thead th:first-child::after {
-    left: 0;
-    border-top-left-radius: 8px;
-}
-
-.main-tables thead th:last-child::after {
-    right: 0;
-    border-top-right-radius: 8px;
-}
-
-@media screen and (max-width: 800px) {
-    .main-tables thead th {
-        white-space: nowrap;
-        text-overflow: ellipsis;
-        overflow: hidden;
-        border: 1px solid var(--stroke);
-        padding: 8px;
-    }
-
-    .main-tables tbody tr::after {
-        content: "";
-        display: block;
-        position: relative;
-        height: 8px;
-        width: 100%;
-        background-color: var(--client-bg);
-    }
-
-    .main-tables tbody tr td {
-        padding: 8px !important;
-        height: 42px;
-        display: flex !important;
-        align-items: center !important;
-        background-color: var(--card-bg);
-        border: 1px solid var(--stroke);
-        border-top: none;
-    }
-
-    .main-tables tbody tr td:first-child {
-        border-top-left-radius: 8px;
-        border-top-right-radius: 8px;
-    }
-
-    .main-tables tbody tr td:last-child {
-        border-bottom-left-radius: 8px;
-        border-bottom-right-radius: 8px;
-        border-right: 1px solid var(--stroke) !important;
-        border-bottom: 1px solid var(--stroke) !important;
-    }
-
-    .main-tables tbody tr td:first-child::before {
-        border-top-left-radius: 8px;
-    }
-
-    .main-tables tbody tr td:last-child::before {
-        border-bottom-left-radius: 8px;
-    }
-
-    .main-tables tbody tr td::before {
-        width: 25%;
-        background-color: var(--bg2);
-        color: var(--c2);
-        font: normal normal normal 16px/24px Titillium Web;
-        margin-right: 15px;
-        height: 100%;
-        align-content: center;
-        padding-left: 15px;
-    }
-} */
-
-/* .overlay {
-    position: fixed;
-    top: 0;
-    left: 0;
-    width: 100%;
-    height: 100%;
-    background-color: rgba(0, 0, 0, 0.5);
-    z-index: 1000;
-} */
-
-/* .devices-container {
-    display: flex;
-    flex-direction: column;
-    position: fixed;
-    top: 50%;
-    left: 50%;
-    transform: translate(-50%, -50%);
-    padding: 20px 20px;
-    border-radius: 8px;
-    z-index: 1001;
-    width: 60%;
-    height: fit-content;
-    overflow: auto;
-    background-color: var(--button);
-}
-
-.devices-container div {
-    margin-bottom: 10px;
-} */
-
 .modal-buttons .button {
     flex: 1;
 }
@@ -270,7 +99,6 @@ body {
     align-items: center;
     justify-content: center;
     cursor: pointer;
-    background: var(--hover-text);
     border: 0;
 }
 
@@ -283,6 +111,8 @@ body {
     height: 16px;
     fill: var(--text-standard);
 }
+
+
 
 @media (max-width: 700px) {
     .datatable-container {
@@ -329,7 +159,37 @@ body {
     #dataTable td[data-col="actions"]::before {
         content: "";
     }
+
+    .optionsDiv {
+        flex-direction: column;
+        align-items: stretch;
+        gap: 12px;
+    }
+
+    .search-options {
+        width: 100% !important;
+        margin: 0 !important;
+        justify-content: stretch !important;
+        padding: 6px 12px !important;
+    }
+
+    .search-input-wrap {
+        width: 100% !important;
+        min-width: 0 !important;
+        max-width: none !important;
+    }
+
+    #search-input {
+        width: 100% !important;
+        max-width: 100% !important;
+        box-sizing: border-box;
+    }
+
+    .optionsDiv>div {
+        width: 100%;
+    }
 }
+
 .device-online {
     background-color: rgba(0, 180, 0, 0.15);
 }
@@ -342,4 +202,74 @@ body {
 .app-view.is-ready {
     opacity: 1;
     pointer-events: auto;
+}
+
+.buttons-topbar input,
+.optionsDiv input,
+.optionsDiv select,
+.modalDiv input,
+.modalDiv select,
+.datatable-top input,
+#search-input {
+    box-sizing: border-box;
+    width: 100%;
+    height: 42px;
+    min-height: 42px;
+    padding: 8px 12px;
+    font-size: 14px;
+    line-height: 1.2;
+    border-radius: 8px;
+
+    border: 1px solid var(--field-border);
+    background-color: var(--field-bg);
+    color: var(--field-text);
+
+    outline: none;
+}
+
+
+.optionsDiv input:hover,
+.optionsDiv select:hover,
+.modalDiv input:hover,
+.modalDiv select:hover {
+    border-color: #888888;
+}
+
+/* .optionsDiv input:focus,
+.optionsDiv select:focus,
+.modalDiv input:focus,
+.modalDiv select:focus,
+.buttons-topbar input:focus {
+    border-color: var(--field-focus);
+    box-shadow: 0 0 0 2px var(--field-focus);
+} */
+
+.button:hover {
+    background-color: #0056b3;
+    color: var(--text-standard);
+}
+
+.modalDiv {
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+    padding: 14px;
+    overflow-x: hidden;
+}
+
+.modalDiv select.inputfield,
+.modalDiv input.inputfield,
+.modalDiv .inputfield {
+    width: 100%;
+    height: 42px;
+    min-height: 42px;
+    padding: 8px 12px;
+
+    border-radius: 8px;
+    border: 1px solid var(--field-border);
+    background-color: var(--field-bg);
+    color: var(--field-text);
+
+    box-sizing: border-box;
+    outline: none;
 }
