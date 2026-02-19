@@ -1,0 +1,10 @@
+{
+    "plugins": [
+        {
+            "js": "innovaphone.buttonsmanager",
+            "icon": "innovaphone-buttons.png",
+            "lang": "innovaphone.buttonsmanagertexts",
+            "domains": false
+        }
+    ]
+}
